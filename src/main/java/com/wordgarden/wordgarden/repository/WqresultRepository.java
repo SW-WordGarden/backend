@@ -1,4 +1,7 @@
 package com.wordgarden.wordgarden.repository;
 
-public class WqresultRepository {
+import com.wordgarden.wordgarden.entity.Wqresult;
+import org.springframework.data.jpa.repository.JpaRepository;
+
+public interface WqresultRepository extends JpaRepository<Wqresult, Long> {
 }

@@ -1,4 +1,7 @@
 package com.wordgarden.wordgarden.repository;
 
-public class SqinfoRepository {
+import com.wordgarden.wordgarden.entity.Sqinfo;
+import org.springframework.data.jpa.repository.JpaRepository;
+
+public interface SqinfoRepository extends JpaRepository<Sqinfo, Long> {
 }
