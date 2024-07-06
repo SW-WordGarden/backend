@@ -7,11 +7,13 @@ import jakarta.persistence.*;
 @Entity
 @Getter
 @Setter
+@Table(name = "user_tb")
 public class User {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
-    private String username;
-    private String password;
+    private String uid;
     private String email;
+    private String nickname;
+    private int point;
+    private int u_rank;
+    private String u_url;
 }
