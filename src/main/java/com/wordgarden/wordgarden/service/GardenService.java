@@ -42,15 +42,9 @@ public class GardenService {
         }
     }
 
+    // 도감 등록
     private void registerInGardenBook(Garden garden) {
-        // 도감 등록 로직 구현
-        // GardenBook 엔티티에 등록된 나무 정보 저장
-        // 예시
-        // GardenBook gardenBook = new GardenBook();
-        // gardenBook.setTreeName(garden.getTreeName());
-        // gardenBook.setTreeResult(garden.getTreeResult());
-        // gardenBook.setGardenId(garden.getGardenId());
-        // gardenBookRepository.save(gardenBook);
+
     }
 
     public List<GardenStatus> getGardenBook(String uid) {
