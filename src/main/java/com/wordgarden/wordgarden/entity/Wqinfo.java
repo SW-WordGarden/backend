@@ -1,7 +1,6 @@
 package com.wordgarden.wordgarden.entity;
 
-import jakarta.persistence.ElementCollection;
-import jakarta.persistence.Entity;
+import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -10,13 +9,19 @@ import java.util.List;
 @Entity
 @Getter
 @Setter
+@Table(name = "wqinfo_tb")
 public class Wqinfo {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    @Column(name = "wq_id", length = 255)
+    private String wqId;
 
-    private String title;
+    @Lob
+    @Column(name = "wq_question")
+    private String wqQuestion;
 
     @ElementCollection
-    private List<String> questions;
+    @CollectionTable(name = "wq_questions", joinColumns = @JoinColumn(name = "wq_id"))
+    @Column(name = "wq_question1")
+    private List<String> wqQuestion1;
+
 }

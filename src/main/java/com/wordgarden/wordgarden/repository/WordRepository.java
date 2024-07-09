@@ -7,6 +7,6 @@ import org.springframework.stereotype.Repository;
 import java.util.List;
 
 @Repository
-public interface WordRepository extends JpaRepository<Word, String> {
+public interface WordRepository extends JpaRepository<Word, Long> {
     List<Word> findByCategory(String category);
 }

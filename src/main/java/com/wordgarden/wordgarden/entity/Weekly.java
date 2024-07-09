@@ -5,20 +5,18 @@ import lombok.Getter;
 import lombok.Setter;
 
 @Entity
-@Table(name = "like_tb")
 @Getter
 @Setter
-public class Like {
-
+@Table(name = "weekly_tb")
+public class Weekly {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne
-    @JoinColumn(name = "uid", referencedColumnName = "uid")
-    private User user;
+    @Column(name = "word", length = 255)
+    private String word;
 
     @ManyToOne
     @JoinColumn(name = "word_id", referencedColumnName = "word_id")
-    private Word word;
+    private Word wordEntity;
 }
