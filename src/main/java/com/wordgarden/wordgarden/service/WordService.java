@@ -1,4 +1,4 @@
-package com.wordgarden.wordgarden.Service;
+package com.wordgarden.wordgarden.service;
 
 
 import com.opencsv.CSVReader;
@@ -16,12 +16,12 @@ import java.util.List;
 @Service
 public class WordService {
 
+    // csv파일에서 단어 로드 후 데이터베이스 저장
+    // 미리 해둘 것이기 때문에 호출하시면 안되욤!!!!!
     @Autowired
     private WordRepository wordRepository;
-
     @Value("${csv.file.path}")
     private String csvFilePath;
-
     public void loadWordsFromCSV() {
         try (CSVReader reader = new CSVReader(new FileReader(csvFilePath))) {
             List<String[]> records = reader.readAll();

@@ -3,7 +3,6 @@ package com.wordgarden.wordgarden.entity;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
-import org.springframework.data.annotation.Id;
 
 @Entity
 @Getter
@@ -24,6 +23,6 @@ public class Sq {
     private String sqAnswer;
 
     @ManyToOne
-    @JoinColumn(name = "sq_id", referencedColumnName = "sq_id")
+    @JoinColumn(name = "sqinfo_id", referencedColumnName = "sq_id")
     private Sqinfo sqinfo;
 }
