@@ -13,8 +13,8 @@ public class AuthService {
     public User saveOrUpdateUser(String uid, String nickname, String provider) {
         User user = userRepository.findById(uid).orElse(new User());
         user.setUid(uid);
-        user.setUNickname(nickname); // 이 부분 수정 필요: uNickname으로 수정
-        user.setUProvider(provider); // 이 부분 수정 필요: uProvider로 수정
+        user.setUNickname(nickname);
+        user.setUProvider(provider);
         return userRepository.save(user);
     }
 

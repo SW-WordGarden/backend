@@ -21,7 +21,7 @@ public class Word {
     @Column(name = "category", length = 50)
     private String category;
 
-    @Column(name = "word_info")
+    @Column(name = "description")
     private String wordInfo;
 
     @OneToMany(mappedBy = "word")
