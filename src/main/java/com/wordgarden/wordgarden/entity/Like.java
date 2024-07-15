@@ -9,16 +9,15 @@ import lombok.Setter;
 @Getter
 @Setter
 public class Like {
-
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    @Column(name = "like_id")
+    private Long likeId;
 
     @ManyToOne
-    @JoinColumn(name = "uid", referencedColumnName = "uid")
-    private User user;
-
-    @ManyToOne
-    @JoinColumn(name = "word_id", referencedColumnName = "word_id")
+    @JoinColumn(name = "word_id", nullable = false)
     private Word word;
+
+    @Column(name = "user_id") // 사용자 식별 정보를 저장할 필드
+    private String userId; // 예시로 사용자 식별 정보는 String 타입으로 가정
 }

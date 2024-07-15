@@ -12,17 +12,26 @@ import java.util.List;
 @Setter
 public class Word {
     @Id
-    @Column(name = "word_id", length = 255)
+    @Column(name = "word_id")
     private String wordId;
 
-    @Column(name = "word", length = 50)
+    @Column(name = "word")
     private String word;
 
     @Column(name = "category", length = 50)
     private String category;
 
-    @Column(name = "description")
+    @Column(name = "word_info", columnDefinition = "LONGTEXT")
     private String wordInfo;
+
+    @Column(name = "thumbnail")
+    private String thumbnail;
+
+    @OneToMany(mappedBy = "word")
+    private List<Wqinfo> wqInfos;
+
+    @OneToMany(mappedBy = "word")
+    private List<Wqwrong> wqWrongs;
 
     @OneToMany(mappedBy = "word")
     private List<Like> likes;

@@ -12,15 +12,13 @@ import org.hibernate.annotations.SecondaryRow;
 public class Friend {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    @Column(name = "fu_id")
+    private Long fuId;
 
-    @Column(name = "fu_url", length = 255)
+    @Column(name = "fu_url")
     private String fuUrl;
 
-    @Column(name = "fu_id", length = 255)
-    private String fuId;
-
     @ManyToOne
-    @JoinColumn(name = "uid", referencedColumnName = "uid")
+    @JoinColumn(name = "uid")
     private User user;
 }

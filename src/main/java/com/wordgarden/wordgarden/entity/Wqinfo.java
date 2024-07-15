@@ -12,16 +12,23 @@ import java.util.List;
 @Table(name = "wqinfo_tb")
 public class Wqinfo {
     @Id
-    @Column(name = "wq_id", length = 255)
+    @Column(name = "wq_id")
     private String wqId;
 
-    @Lob
-    @Column(name = "wq_question")
+    @Column(name = "wq_question", columnDefinition = "LONGTEXT")
     private String wqQuestion;
 
-    @ElementCollection
-    @CollectionTable(name = "wq_questions", joinColumns = @JoinColumn(name = "wq_id"))
-    @Column(name = "wq_question1")
-    private List<String> wqQuestion1;
+    @Column(name = "wq_answer", columnDefinition = "LONGTEXT")
+    private String wqAnswer;
+
+    @ManyToOne
+    @JoinColumn(name = "word_id")
+    private Word word;
+
+    @OneToMany(mappedBy = "wqInfo")
+    private List<Wqresult> wqResults;
+
+    @OneToMany(mappedBy = "wqInfo")
+    private List<Wqwrong> wqWrongs;
 
 }
