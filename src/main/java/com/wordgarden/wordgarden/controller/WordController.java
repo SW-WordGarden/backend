@@ -28,7 +28,7 @@ public class WordController {
     }
 
     // 특정 단어 조회
-    @GetMapping("/{wordId}")
+    @GetMapping("words/{wordId}")
     public ResponseEntity<Word> getWordById(@PathVariable String wordId) {
         Word word = wordRepository.findByWordId(wordId);
         if (word != null) {
@@ -38,31 +38,32 @@ public class WordController {
         }
     }
 
-    // 특정 카테고리의 모든 단어들 조회
-    @GetMapping("/{category}")
-    public ResponseEntity<List<WordDTO>> getWordsByCategory(@PathVariable String category) {
-        return ResponseEntity.ok(wordService.getWordsByCategory(category));
-    }
+//    // 카테고리별 단어 조회
+//    @GetMapping("/category/{category}")
+//    public ResponseEntity<List<WordDTO>> getWordsByCategory(@PathVariable String category) {
+//        return ResponseEntity.ok(wordService.getWordsByCategory(category));
+//    }
 
-    // 이번주 학습 단어들 전부 조회
-    @GetMapping("/weekly")
+    // Learning 단어 조회
+    @GetMapping("/learning")
     public ResponseEntity<List<LearningDTO>> getLearningWords() {
         return ResponseEntity.ok(wordService.getLearningWords());
     }
 
-    // 이번주 학습 단어들 카테고리별 조회
-    @GetMapping("/weekly/{category}")
+    // 카테고리별 Learning 단어 조회
+    @GetMapping("/learning/{category}")
     public ResponseEntity<List<LearningDTO>> getLearningWordsByCategory(@PathVariable String category) {
         return ResponseEntity.ok(wordService.getLearningWordsByCategory(category));
     }
 
-    // 자동으로 이루어짐 - 7일 주기로 단어 자동으로 바뀌는 부분
+    // 매주 7일마다 Learning 업데이트 요청
     @PostMapping("/update-learning")
     public ResponseEntity<Void> updateLearningWords() {
         wordService.updateLearningWords();
         return ResponseEntity.ok().build();
     }
 
+    // Weekly 초기화 요청
     @PostMapping("/clean-weekly")
     public ResponseEntity<Void> cleanUpWeeklyWords() {
         wordService.cleanUpWeeklyWords();

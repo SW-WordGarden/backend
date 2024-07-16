@@ -12,22 +12,26 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @RestController
-@RequestMapping("like")
+@RequestMapping("/like")
 public class LikeController {
+
     @Autowired
     private LikeRepository likeRepository;
+
     @Autowired
     private WordRepository wordRepository;
+
     @Autowired
     private UserRepository userRepository;
 
-    // 좋아요 누르기
-    @PostMapping("/{wordId}")
-    public ResponseEntity<?> toggleLike(@PathVariable String wordId, @RequestParam String userId) {
+    // 좋아요 토글
+    @PostMapping("/{uid}/{wordId}")
+    public ResponseEntity<?> toggleLike(@PathVariable String uid, @PathVariable String wordId) {
         Optional<Word> optionalWord = wordRepository.findById(wordId);
-        Optional<User> optionalUser = userRepository.findById(userId);
+        Optional<User> optionalUser = userRepository.findById(uid);
 
         if (!optionalWord.isPresent() || !optionalUser.isPresent()) {
             return ResponseEntity.notFound().build();
@@ -37,8 +41,7 @@ public class LikeController {
         User user = optionalUser.get();
 
         // 사용자가 이미 해당 단어에 좋아요를 눌렀는지 확인
-        List<Like> existingLikes = likeRepository.findLikesByUserId(userId);
-        Like existingLike = findExistingLike(existingLikes, wordId);
+        Like existingLike = likeRepository.findByUserAndWord(user, word);
 
         if (existingLike != null) {
             // 이미 좋아요를 눌렀으면 삭제
@@ -54,20 +57,19 @@ public class LikeController {
         }
     }
 
-    // 사용자의 좋아요 리스트 중에서 특정 wordId에 해당하는 Like 객체를 찾는 메서드
-    private Like findExistingLike(List<Like> likes, String wordId) {
-        for (Like like : likes) {
-            if (like.getWord().getWordId().equals(wordId)) {
-                return like;
-            }
-        }
-        return null;
-    }
-
-    // 사용자의 좋아요 리스트
-    @GetMapping("/{userId}")
-    public ResponseEntity<List<Like>> getLikesByUser(@PathVariable String userId) {
-        List<Like> likes = likeRepository.findLikesByUserId(userId);
-        return ResponseEntity.ok(likes);
-    }
+//    // 사용자의 좋아요 리스트 조회
+//    @GetMapping("/{uid}")
+//    public ResponseEntity<List<Word>> getLikesByUser(@PathVariable String uid) {
+//        Optional<User> optionalUser = userRepository.findByUid(uid);
+//
+//        if (!optionalUser.isPresent()) {
+//            return ResponseEntity.notFound().build();
+//        }
+//
+//        User user = optionalUser.get();
+//        List<Like> likes = likeRepository.findByUser(user);
+//        List<Word> likedWords = likes.stream().map(Like::getWord).collect(Collectors.toList());
+//
+//        return ResponseEntity.ok(likedWords);
+//    }
 }

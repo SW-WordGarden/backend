@@ -18,13 +18,13 @@ public class Word {
     @Column(name = "word")
     private String word;
 
-    @Column(name = "category", length = 50)
+    @Column(name = "category", length = 255)
     private String category;
 
     @Column(name = "word_info", columnDefinition = "LONGTEXT")
     private String wordInfo;
 
-    @Column(name = "thumbnail")
+    @Column(name = "thumbnail", columnDefinition = "LONGTEXT")
     private String thumbnail;
 
     @OneToMany(mappedBy = "word")

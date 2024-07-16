@@ -11,14 +11,13 @@ import lombok.Setter;
 public class Like {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "like_id")
-    private Long likeId;
+    private Long id;
 
     @ManyToOne
-    @JoinColumn(name = "word_id", nullable = false)
-    private Word word;
-
-    @ManyToOne
-    @JoinColumn(name = "user_id", referencedColumnName = "uid", nullable = false) // User 엔티티의 uid 필드와 매핑
+    @JoinColumn(name = "user_id", referencedColumnName = "uid")
     private User user;
+
+    @ManyToOne
+    @JoinColumn(name = "word_id", referencedColumnName = "word_id")
+    private Word word;
 }
