@@ -10,13 +10,13 @@ import java.util.List;
 import java.util.Optional;
 
 @Repository
-public interface WordRepository extends JpaRepository<Word, Long> {
+public interface WordRepository extends JpaRepository<Word, String> {
     List<Word> findByCategory(String category);
 
     @Query("SELECT DISTINCT w.category FROM Word w")
     List<String> findDistinctCategories();
 
-    List<Word> findTop10ByCategoryOrderById(String category);
+    List<Word> findTop10ByCategoryOrderByWordId(String category);
 
     @Query("SELECT w FROM Word w WHERE w.wordId = :wordId")
     Word findByWordId(@Param("wordId") String wordId);

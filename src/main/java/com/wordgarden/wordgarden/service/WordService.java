@@ -92,7 +92,7 @@ public class WordService {
         // 각 카테고리별로 단어를 10개씩 선택하여 Learning으로 저장
         List<String> categories = wordRepository.findDistinctCategories();
         for (String category : categories) {
-            List<Word> words = wordRepository.findTop10ByCategoryOrderById(category);
+            List<Word> words = wordRepository.findTop10ByCategoryOrderByWordId(category);
             for (Word word : words) {
                 Learning learning = new Learning();
                 learning.setWord(word.getWord());

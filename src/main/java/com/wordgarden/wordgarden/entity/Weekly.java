@@ -4,6 +4,8 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.time.LocalDateTime;
+
 @Entity
 @Getter
 @Setter
@@ -19,4 +21,7 @@ public class Weekly {
     @ManyToOne
     @JoinColumn(name = "word_id", referencedColumnName = "word_id")
     private Word wordEntity;
+
+    @Column(name = "created_at")
+    private LocalDateTime createdAt;
 }

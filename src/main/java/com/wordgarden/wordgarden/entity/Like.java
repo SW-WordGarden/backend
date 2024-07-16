@@ -18,6 +18,7 @@ public class Like {
     @JoinColumn(name = "word_id", nullable = false)
     private Word word;
 
-    @Column(name = "user_id") // 사용자 식별 정보를 저장할 필드
-    private String userId; // 예시로 사용자 식별 정보는 String 타입으로 가정
+    @ManyToOne
+    @JoinColumn(name = "user_id", referencedColumnName = "uid", nullable = false) // User 엔티티의 uid 필드와 매핑
+    private User user;
 }

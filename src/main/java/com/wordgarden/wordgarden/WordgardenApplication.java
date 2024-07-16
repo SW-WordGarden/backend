@@ -10,13 +10,13 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 @EnableScheduling
 public class WordgardenApplication {
 
-	@PostConstruct
-	public void init() {
-		Dotenv dotenv = Dotenv.configure().load();
-		dotenv.entries().forEach(entry -> {
-			System.setProperty(entry.getKey(), entry.getValue());
-		});
-	}
+//	@PostConstruct
+//	public void init() {
+//		Dotenv dotenv = Dotenv.configure().load();
+//		dotenv.entries().forEach(entry -> {
+//			System.setProperty(entry.getKey(), entry.getValue());
+//		});
+//	}
 
 	public static void main(String[] args) {
 		SpringApplication.run(WordgardenApplication.class, args);

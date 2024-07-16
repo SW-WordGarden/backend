@@ -8,8 +8,9 @@ import org.springframework.data.repository.query.Param;
 import java.util.List;
 
 public interface LikeRepository extends JpaRepository<Like, Long> {
-    @Query("SELECT l FROM Like l WHERE l.word.wordId = :wordId AND l.userId = :userId")
-    Like findByWordIdAndUserId(@Param("wordId") String wordId, @Param("userId") String userId);
+    List<Like> findByUserUid(String userId);
 
-    List<Like> findByUserId(String userId); // 사용자가 좋아요를 누른 목록 조회
+    @Query("SELECT l FROM Like l WHERE l.user.uid = :userId")
+    List<Like> findLikesByUserId(@Param("userId") String userId);
+
 }
