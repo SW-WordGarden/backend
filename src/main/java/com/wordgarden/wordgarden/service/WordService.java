@@ -5,12 +5,8 @@ import com.opencsv.CSVReader;
 import com.opencsv.exceptions.CsvException;
 import com.wordgarden.wordgarden.dto.LearningDTO;
 import com.wordgarden.wordgarden.dto.WordDTO;
-import com.wordgarden.wordgarden.entity.Learning;
-import com.wordgarden.wordgarden.entity.Weekly;
-import com.wordgarden.wordgarden.entity.Word;
-import com.wordgarden.wordgarden.repository.LearningRepository;
-import com.wordgarden.wordgarden.repository.WeeklyRepository;
-import com.wordgarden.wordgarden.repository.WordRepository;
+import com.wordgarden.wordgarden.entity.*;
+import com.wordgarden.wordgarden.repository.*;
 import jakarta.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -23,7 +19,9 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -35,9 +33,13 @@ public class WordService {
     private LearningRepository learningRepository;
     @Autowired
     private WeeklyRepository weeklyRepository;
+    @Autowired
+    private UserRepository userRepository;
+    @Autowired
+    private LikeRepository likeRepository;
 
 //    @Value("${csv.file.path}")
-    @Value("C:\\python\\test_word.csv")
+    @Value("C:\\python\\test_result_word.csv")
     private String csvFilePath;
 
     @PostConstruct
@@ -155,7 +157,7 @@ public class WordService {
                 .collect(Collectors.toList());
     }
 
-    private WordDTO convertToWordDTO(Learning learning) {
+    private WordDTO convertToLearningWordDTO(Learning learning) {
         WordDTO dto = new WordDTO();
         dto.setWordId(learning.getWordEntity().getWordId());
         dto.setWord(learning.getWordEntity().getWord());
@@ -166,7 +168,59 @@ public class WordService {
 
     private List<WordDTO> convertToWordDTOList(List<Learning> learningList) {
         return learningList.stream()
-                .map(this::convertToWordDTO)
+                .map(this::convertToLearningWordDTO)
                 .collect(Collectors.toList());
+    }
+
+    // 좋아요 토글
+    @Transactional
+    public boolean toggleLike(String uid, String wordId) {
+        User user = userRepository.findByUid(uid)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+        Word word = wordRepository.findById(wordId)
+                .orElseThrow(() -> new RuntimeException("Word not found"));
+
+        Like like = likeRepository.findByUserAndWord(user, word);
+        if (like == null) {
+            // 좋아요가 없으면 추가
+            like = new Like();
+            like.setUser(user);
+            like.setWord(word);
+            likeRepository.save(like);
+            return true;
+        } else {
+            // 좋아요가 있으면 제거
+            likeRepository.delete(like);
+            return false;
+        }
+    }
+
+    // 사용자의 좋아요 리스트 조회
+    public List<WordDTO> getLikedWords(String uid) {
+        User user = userRepository.findByUid(uid)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+        List<Like> likes = likeRepository.findByUser(user);
+        return likes.stream()
+                .map(like -> convertWordToDTO(like.getWord()))
+                .collect(Collectors.toList());
+    }
+
+    // 특정 단어의 좋아요 상태 확인
+    public boolean checkLikeStatus(String uid, String wordId) {
+        User user = userRepository.findByUid(uid)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+        Word word = wordRepository.findById(wordId)
+                .orElseThrow(() -> new RuntimeException("Word not found"));
+        return likeRepository.findByUserAndWord(user, word) != null;
+    }
+
+    private WordDTO convertWordToDTO(Word word) {
+        WordDTO dto = new WordDTO();
+        dto.setWordId(word.getWordId());
+        dto.setWord(word.getWord());
+        dto.setCategory(word.getCategory());
+        dto.setWordInfo(word.getWordInfo());
+        // 필요한 다른 필드들도 설정
+        return dto;
     }
 }
