@@ -30,14 +30,20 @@ https://dearmycode.tistory.com/15
 H2설정을 주석처리 하시고 나머지 부분을 다 활성화 시키시면 됩니다.</br>
 url에서 port번호(현재 코드에서 3307이라고 되어 있는 부분)</br>
 username에 사용자 이름 작성해주시고</br>
-mysql에서 해당 사용자 계정을 생성할 때에 설정했던 password를 작성해주시면 됩니다.
+mysql에서 해당 사용자 계정을 생성할 때에 설정했던 password를 작성해주시면 됩니다.</br></br>
 
 # Word 추가 이후 
-번거롭지만 서버를 테스트 할 때마다 DB를 생성하고 지우는 과정을 반복해주어야 DB관련 에러가 발생하지 않습니다.
+번거롭지만 서버를 테스트 할 때마다 DB를 생성하고 지우는 과정을 반복해주어야 DB관련 에러가 발생하지 않습니다.</br></br>
 
 ![image](https://github.com/user-attachments/assets/1b83c1b6-a0a3-459e-b42c-fd800eb3d1db)
-MySQL Workbench 환경에
-서버 시작 전 create database wordgarden;
-서버 종료 후 drop database wordgarden;
+</br>
+MySQL Workbench 환경에</br>
+서버 시작 전 create database wordgarden;</br>
+서버 종료 후 drop database wordgarden;</br>
 를 해주셔야 DB에러 없이 테스트가 가능합니다.
-재시작할 때마다 wordlist가 다시 로드 되어서 발생하는 에러입니다.
+재시작할 때마다 wordlist가 다시 로드 되어서 발생하는 에러입니다.</br></br>
+
+![image](https://github.com/user-attachments/assets/4f30710c-b7d6-4791-a4bc-647c9ded9957)
+</br>
+그리고 ..\wordgarden\service\WordService.java 40번째 줄에 테스트 csv파일 경로를 넣어야합니다.</br>
+테스트 파일은 단어 설명 부분이 정제가 아직 되어있지 않아요. 디코방에 올려둔 테스트 파일 사용하시면 됩니다.
