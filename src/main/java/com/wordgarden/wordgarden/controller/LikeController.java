@@ -31,9 +31,9 @@ public class LikeController {
     @PostMapping("/{uid}/{wordId}")
     public ResponseEntity<?> toggleLike(@PathVariable String uid, @PathVariable String wordId) {
         Optional<Word> optionalWord = wordRepository.findById(wordId);
-        Optional<User> optionalUser = userRepository.findById(uid);
+        Optional<User> optionalUser = userRepository.findByUid(uid);
 
-        if (!optionalWord.isPresent() || !optionalUser.isPresent()) {
+        if (optionalWord.isEmpty() || optionalUser.isEmpty()) {
             return ResponseEntity.notFound().build();
         }
 
@@ -57,19 +57,19 @@ public class LikeController {
         }
     }
 
-//    // 사용자의 좋아요 리스트 조회
-//    @GetMapping("/{uid}")
-//    public ResponseEntity<List<Word>> getLikesByUser(@PathVariable String uid) {
-//        Optional<User> optionalUser = userRepository.findByUid(uid);
-//
-//        if (!optionalUser.isPresent()) {
-//            return ResponseEntity.notFound().build();
-//        }
-//
-//        User user = optionalUser.get();
-//        List<Like> likes = likeRepository.findByUser(user);
-//        List<Word> likedWords = likes.stream().map(Like::getWord).collect(Collectors.toList());
-//
-//        return ResponseEntity.ok(likedWords);
-//    }
+    // 사용자의 좋아요 리스트 조회
+    @GetMapping("/{uid}")
+    public ResponseEntity<List<Word>> getLikesByUser(@PathVariable String uid) {
+        Optional<User> optionalUser = userRepository.findByUid(uid);
+
+        if (optionalUser.isEmpty()) {
+            return ResponseEntity.notFound().build();
+        }
+
+        User user = optionalUser.get();
+        List<Like> likes = likeRepository.findByUser(user);
+        List<Word> likedWords = likes.stream().map(Like::getWord).collect(Collectors.toList());
+
+        return ResponseEntity.ok(likedWords);
+    }
 }

@@ -18,5 +18,5 @@ public interface LikeRepository extends JpaRepository<Like, Long> {
     Like findByUserAndWord(User user, Word word);
 
     // 사용자 ID를 기준으로 사용자의 좋아요 리스트 찾기
-    List<Like> findByUserUid(String uid);
+    List<Like> findByUser(User user);
 }
