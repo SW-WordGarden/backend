@@ -2,6 +2,7 @@ package com.wordgarden.wordgarden.controller;
 
 import com.wordgarden.wordgarden.dto.LoginRequestDTO;
 import com.wordgarden.wordgarden.entity.User;
+import com.wordgarden.wordgarden.security.JwtTokenProvider;
 import com.wordgarden.wordgarden.service.AuthService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -13,6 +14,8 @@ public class AuthController {
 
     @Autowired
     private AuthService authService;
+    @Autowired
+    private JwtTokenProvider jwtTokenProvider;
 
     @PostMapping("/login")
     public ResponseEntity<User> login(@RequestBody LoginRequestDTO loginRequest) {
@@ -27,14 +30,20 @@ public class AuthController {
     }
 
 
-    @GetMapping("/user/{uid}")
-    public ResponseEntity<User> getCurrentUser(@PathVariable("uid") String userId) {
-        // userId를 이용하여 사용자 정보를 가져오는 로직을 작성
-        User user = authService.getUserByUid(userId);
-        if (user != null) {
-            return ResponseEntity.ok(user);
-        } else {
-            return ResponseEntity.notFound().build();
+    @GetMapping("/user")
+    public ResponseEntity<User> getCurrentUser(@RequestHeader("Authorization") String token) {
+        if (token != null && token.startsWith("Bearer ")) {
+            token = token.substring(7);
         }
+
+        if (jwtTokenProvider.validateToken(token)) {
+            String uid = jwtTokenProvider.getUidFromToken(token);
+            User user = authService.getUserByUid(uid);
+            if (user != null) {
+                return ResponseEntity.ok(user);
+            }
+        }
+
+        return ResponseEntity.notFound().build();
     }
 }
