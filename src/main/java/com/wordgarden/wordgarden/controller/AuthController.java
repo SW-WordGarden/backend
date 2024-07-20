@@ -7,6 +7,7 @@ import com.wordgarden.wordgarden.security.JwtTokenProvider;
 import com.wordgarden.wordgarden.service.AuthService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.web.bind.annotation.*;
@@ -35,12 +36,14 @@ public class AuthController {
     }
 
 
-    @GetMapping("/user")
-    public ResponseEntity<User> getCurrentUser(@RequestHeader("X-User-UID") String uid) {
+    @GetMapping("/user/{uid}")
+    public ResponseEntity<Object> getUserByUid(@PathVariable String uid) {
         User user = authService.getUserByUid(uid);
         if (user != null) {
             return ResponseEntity.ok(user);
         }
-        return ResponseEntity.notFound().build();
+        else{
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("User not found");
+        }
     }
 }
