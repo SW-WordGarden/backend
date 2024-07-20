@@ -30,29 +30,17 @@ public class AuthController {
         // 처리 로직
         User user = authService.saveOrUpdateUser(uid, nickname, provider);
 
-        // JWT 토큰 생성
-        String token = jwtTokenProvider.generateToken(user.getUid());
-
         // AuthenticationResponse 객체 생성 및 반환
-        return ResponseEntity.ok(new AuthenticationResponse(token));
+        return ResponseEntity.ok(user);
     }
 
 
     @GetMapping("/user")
-    public ResponseEntity<User> getCurrentUser(@RequestHeader("Authorization") String authHeader) {
-        // "Bearer " 접두사 제거
-        String token = authHeader.replace("Bearer ", "");
-        log.info("Received token: {}", token);
-
-        if (jwtTokenProvider.validateToken(token)) {
-            String uid = jwtTokenProvider.getUidFromToken(token);
-            log.info("Extracted UID from token: {}", uid);
-            User user = authService.getUserByUid(uid);
-            if (user != null) {
-                return ResponseEntity.ok(user);
-            }
+    public ResponseEntity<User> getCurrentUser(@RequestHeader("X-User-UID") String uid) {
+        User user = authService.getUserByUid(uid);
+        if (user != null) {
+            return ResponseEntity.ok(user);
         }
-
         return ResponseEntity.notFound().build();
     }
 }

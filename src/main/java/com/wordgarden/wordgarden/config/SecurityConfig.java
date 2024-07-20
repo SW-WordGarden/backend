@@ -15,8 +15,12 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig {
+    private final CustomAuthenticationFilter customAuthenticationFilter;
+
     @Autowired
-    private JwtTokenProvider jwtTokenProvider;
+    public SecurityConfig(CustomAuthenticationFilter customAuthenticationFilter) {
+        this.customAuthenticationFilter = customAuthenticationFilter;
+    }
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
@@ -25,10 +29,10 @@ public class SecurityConfig {
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(authorize -> authorize
                 .requestMatchers("/login/**").permitAll()
-                .requestMatchers("/public/**").permitAll()
+                .requestMatchers("/word/**").permitAll()
                 .anyRequest().authenticated()
             )
-            .addFilterBefore(new JwtAuthenticationFilter(jwtTokenProvider), UsernamePasswordAuthenticationFilter.class);
+            .addFilterBefore(customAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
         return http.build();
     }
 

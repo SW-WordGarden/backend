@@ -10,8 +10,6 @@ import org.springframework.stereotype.Service;
 public class AuthService {
     @Autowired
     private UserRepository userRepository;
-    @Autowired
-    private JwtTokenProvider jwtTokenProvider;
 
     public User saveOrUpdateUser(String uid, String nickname, String provider) {
         User user = getUserByUid(uid);
@@ -28,8 +26,4 @@ public class AuthService {
         return userRepository.findById(uid).orElse(null);
     }
 
-    public String loginUser(String uid, String nickname, String provider) {
-        User user = saveOrUpdateUser(uid, nickname, provider);
-        return jwtTokenProvider.generateToken(user.getUid());
-    }
 }
