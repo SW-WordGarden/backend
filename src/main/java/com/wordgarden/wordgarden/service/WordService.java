@@ -39,7 +39,7 @@ public class WordService {
     private LikeRepository likeRepository;
 
 //    @Value("${csv.file.path}")
-    @Value("C:\\python\\test_result_word.csv")
+    @Value("C:\\python\\test_word.csv")
     private String csvFilePath;
 
     @PostConstruct
