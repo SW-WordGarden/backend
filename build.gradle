@@ -44,8 +44,17 @@ dependencies {
 	implementation 'org.hibernate.orm:hibernate-core:6.5.2.Final'
 	implementation 'com.mysql:mysql-connector-j:8.0.33'
 	implementation 'io.jsonwebtoken:jjwt:0.9.1'
-//	implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.5.0'
-//	implementation 'org.springframework.boot:spring-boot-starter-security'
+	implementation 'org.springframework.boot:spring-boot-starter-validation'
+	implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.5.0'
+	implementation 'org.springframework.boot:spring-boot-starter-security'
+	// JAXB API
+	implementation 'javax.xml.bind:jaxb-api:2.3.1'
+	implementation 'org.glassfish.jaxb:jaxb-runtime:2.3.1'
+
+	// 또는 JJWT 라이브러리를 사용하는 경우
+	implementation 'io.jsonwebtoken:jjwt-api:0.11.2'
+	runtimeOnly 'io.jsonwebtoken:jjwt-impl:0.11.2'
+	runtimeOnly 'io.jsonwebtoken:jjwt-jackson:0.11.2'
 }
 
 tasks.named('test') {

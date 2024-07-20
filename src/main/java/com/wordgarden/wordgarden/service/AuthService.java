@@ -14,8 +14,11 @@ public class AuthService {
     private JwtTokenProvider jwtTokenProvider;
 
     public User saveOrUpdateUser(String uid, String nickname, String provider) {
-        User user = userRepository.findById(uid).orElse(new User());
-        user.setUid(uid);
+        User user = getUserByUid(uid);
+        if (user == null) {
+            user = new User();
+            user.setUid(uid);
+        }
         user.setUName(nickname);
         user.setUProvider(provider);
         return userRepository.save(user);
