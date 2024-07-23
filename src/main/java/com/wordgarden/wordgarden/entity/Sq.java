@@ -11,6 +11,7 @@ import lombok.Setter;
 public class Sq {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "sq_id")
     private Long id;
 
     @Column(name = "sq_question", length = 255)
