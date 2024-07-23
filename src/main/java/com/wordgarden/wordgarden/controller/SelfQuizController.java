@@ -4,10 +4,7 @@ import com.wordgarden.wordgarden.dto.SqDTO;
 import com.wordgarden.wordgarden.service.SelfQuizService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
 import java.util.List;
@@ -32,5 +29,17 @@ public class SelfQuizController {
         response.put("quizTitle", sqDTO.getQuizTitle());
 
         return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/created/{uid}")
+    public ResponseEntity<List<SqDTO>> getCreatedQuizzesByUser(@PathVariable String uid) {
+        List<SqDTO> quizzes = selfQuizService.getCreatedQuizzesByUser(uid);
+        return ResponseEntity.ok(quizzes);
+    }
+
+    @GetMapping("/solved/{uid}")
+    public ResponseEntity<List<SqDTO>> getSolvedQuizzesByUser(@PathVariable String uid) {
+        List<SqDTO> quizzes = selfQuizService.getSolvedQuizzesByUser(uid);
+        return ResponseEntity.ok(quizzes);
     }
 }
