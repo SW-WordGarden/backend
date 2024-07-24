@@ -14,6 +14,9 @@ public class Sqinfo {
     @Column(name = "sq_id")
     private Long sqId;
 
+    @Column(name = "sq_title", length = 255)
+    private String sqTitle;
+
     @ManyToOne
     @JoinColumn(name = "uid", referencedColumnName = "uid")
     private User user;
