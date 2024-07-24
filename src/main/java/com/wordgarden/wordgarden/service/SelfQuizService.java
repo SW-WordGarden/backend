@@ -68,33 +68,33 @@ public class SelfQuizService {
         return createdSqIds;
     }
 
-    public List<SqDTO> getCreatedQuizzesByUser(String uid) {
-        List<Sqinfo> sqinfos = sqinfoRepository.findByUserUidOrderBySqTitleAsc(uid);
-        return convertSqinfosToSqDTOs(sqinfos);
+    public List<String> getCreatedQuizTitlesByUser(String uid) {
+        return sqinfoRepository.findTitlesByUserUid(uid);
     }
 
-    private List<SqDTO> convertSqinfosToSqDTOs(List<Sqinfo> sqinfos) {
-        List<SqDTO> result = new ArrayList<>();
+    public SqDTO getQuizByUserAndTitle(String uid, String title) {
+        User user = userRepository.findById(uid)
+                .orElseThrow(() -> new RuntimeException("User not found"));
 
-        for (Sqinfo sqinfo : sqinfos) {
-            SqDTO sqDTO = new SqDTO();
-            sqDTO.setUid(sqinfo.getUser().getUid());
-            sqDTO.setQuizTitle(sqinfo.getSqTitle());
-            sqDTO.setQuestionsAndAnswers(new ArrayList<>());
+        Sqinfo sqinfo = sqinfoRepository.findByUserAndSqTitle(user, title)
+                .orElseThrow(() -> new RuntimeException("Quiz not found"));
 
-            List<Sq> sqs = sqRepository.findBySqinfoOrderBySqQnumAsc(sqinfo);
-            for (Sq sq : sqs) {
-                QuestionAnswerDTO qaDTO = new QuestionAnswerDTO();
-                qaDTO.setQuestion(sq.getSqQuestion());
-                qaDTO.setAnswer(sq.getSqAnswer());
-                qaDTO.setSqQnum(sq.getSqQnum());
-                sqDTO.getQuestionsAndAnswers().add(qaDTO);
-            }
+        List<Sq> sqs = sqRepository.findBySqinfoOrderBySqQnumAsc(sqinfo);
 
-            result.add(sqDTO);
+        SqDTO sqDTO = new SqDTO();
+        sqDTO.setUid(uid);
+        sqDTO.setQuizTitle(title);
+        sqDTO.setQuestionsAndAnswers(new ArrayList<>());
+
+        for (Sq sq : sqs) {
+            QuestionAnswerDTO qaDTO = new QuestionAnswerDTO();
+            qaDTO.setQuestion(sq.getSqQuestion());
+            qaDTO.setAnswer(sq.getSqAnswer());
+            qaDTO.setSqQnum(sq.getSqQnum());
+            sqDTO.getQuestionsAndAnswers().add(qaDTO);
         }
 
-        return result;
+        return sqDTO;
     }
 
 }

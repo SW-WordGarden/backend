@@ -32,9 +32,15 @@ public class SelfQuizController {
     }
 
     @GetMapping("/created/{uid}")
-    public ResponseEntity<List<SqDTO>> getCreatedQuizzesByUser(@PathVariable String uid) {
-        List<SqDTO> quizzes = selfQuizService.getCreatedQuizzesByUser(uid);
-        return ResponseEntity.ok(quizzes);
+    public ResponseEntity<List<String>> getCreatedQuizTitlesByUser(@PathVariable String uid) {
+        List<String> quizTitles = selfQuizService.getCreatedQuizTitlesByUser(uid);
+        return ResponseEntity.ok(quizTitles);
+    }
+
+    @GetMapping("/created/{uid}/{title}")
+    public ResponseEntity<SqDTO> getQuizByUserAndTitle(@PathVariable String uid, @PathVariable String title) {
+        SqDTO quiz = selfQuizService.getQuizByUserAndTitle(uid, title);
+        return ResponseEntity.ok(quiz);
     }
 
 }
