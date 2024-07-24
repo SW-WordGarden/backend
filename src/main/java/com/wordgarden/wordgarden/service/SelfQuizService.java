@@ -97,34 +97,4 @@ public class SelfQuizService {
         return result;
     }
 
-    public List<SqDTO> getSolvedQuizzesByUser(String uid) {
-        List<Sqresult> sqresults = sqresultRepository.findSolvedQuizzesByUser(uid);
-        return convertSqresultsToSqDTOs(sqresults);
-    }
-
-    private List<SqDTO> convertSqresultsToSqDTOs(List<Sqresult> sqresults) {
-        Map<String, SqDTO> quizMap = new LinkedHashMap<>();
-
-        for (Sqresult sqresult : sqresults) {
-            Sq sq = sqresult.getSqinfo().getSq();
-            SqDTO sqDTO = quizMap.computeIfAbsent(sq.getSqTitle(), k -> {
-                SqDTO newDto = new SqDTO();
-                newDto.setUid(sqresult.getUser().getUid());
-                newDto.setQuizTitle(sq.getSqTitle());
-                newDto.setQuestionsAndAnswers(new ArrayList<>());
-                newDto.setSqresults(new ArrayList<>()); // 새로운 리스트 초기화
-                return newDto;
-            });
-
-            SqresultDTO sqresultDTO = new SqresultDTO();
-            sqresultDTO.setQuestion(sq.getSqQuestion());
-            sqresultDTO.setAnswer(sq.getSqAnswer());
-            sqresultDTO.setSqQnum(sq.getSqQnum());
-            sqresultDTO.setUserAnswer(sqresult.getUSqA());
-            sqresultDTO.setCorrect(sqresult.getSqCheck());
-            sqDTO.getSqresults().add(sqresultDTO); // SqDTO에 SqresultDTO 추가
-        }
-
-        return new ArrayList<>(quizMap.values());
-    }
 }

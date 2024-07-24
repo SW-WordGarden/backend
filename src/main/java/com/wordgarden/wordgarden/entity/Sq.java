@@ -27,6 +27,6 @@ public class Sq {
     private String sqTitle;
 
     @ManyToOne
-    @JoinColumn(name = "sqinfo_id", referencedColumnName = "sq_id")
+    @JoinColumn(name = "sqinfo_id")
     private Sqinfo sqinfo;
 }

@@ -37,9 +37,5 @@ public class SelfQuizController {
         return ResponseEntity.ok(quizzes);
     }
 
-    @GetMapping("/solved/{uid}")
-    public ResponseEntity<List<SqDTO>> getSolvedQuizzesByUser(@PathVariable String uid) {
-        List<SqDTO> quizzes = selfQuizService.getSolvedQuizzesByUser(uid);
-        return ResponseEntity.ok(quizzes);
-    }
+
 }
