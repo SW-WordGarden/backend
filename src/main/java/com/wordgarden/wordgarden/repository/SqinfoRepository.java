@@ -16,4 +16,6 @@ public interface SqinfoRepository extends JpaRepository<Sqinfo, Long> {
 
     Optional<Sqinfo> findByUserAndSqTitle(User user, String sqTitle);
     boolean existsByUserAndSqTitle(User user, String sqTitle);
+
+    Optional<Sqinfo> findBySqTitle(String sqTitle);
 }

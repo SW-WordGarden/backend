@@ -1,8 +1,6 @@
 package com.wordgarden.wordgarden.service;
 
-import com.wordgarden.wordgarden.dto.SqDTO;
-import com.wordgarden.wordgarden.dto.QuestionAnswerDTO;
-import com.wordgarden.wordgarden.dto.SqresultDTO;
+import com.wordgarden.wordgarden.dto.*;
 import com.wordgarden.wordgarden.entity.Sq;
 import com.wordgarden.wordgarden.entity.Sqinfo;
 import com.wordgarden.wordgarden.entity.Sqresult;
@@ -15,10 +13,12 @@ import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @Service
 public class SelfQuizService {
@@ -35,6 +35,7 @@ public class SelfQuizService {
     @Autowired
     private SqresultRepository sqresultRepository;
 
+    // 문제 생성
     @Transactional
     public List<Long> createCustomQuiz(SqDTO sqDTO) {
         User user = userRepository.findById(sqDTO.getUid())
@@ -68,6 +69,7 @@ public class SelfQuizService {
         return createdSqIds;
     }
 
+    // 생성한 퀴즈 반환
     public List<String> getCreatedQuizTitlesByUser(String uid) {
         return sqinfoRepository.findTitlesByUserUid(uid);
     }
@@ -92,6 +94,86 @@ public class SelfQuizService {
             qaDTO.setAnswer(sq.getSqAnswer());
             qaDTO.setSqQnum(sq.getSqQnum());
             sqDTO.getQuestionsAndAnswers().add(qaDTO);
+        }
+
+        return sqDTO;
+    }
+
+    // 퀴즈 관련 문제만 보이기
+    public List<QuestionDTO> getQuizQuestions(String title) {
+        Sqinfo sqinfo = sqinfoRepository.findBySqTitle(title)
+                .orElseThrow(() -> new RuntimeException("Quiz not found"));
+
+        List<Sq> sqs = sqRepository.findBySqinfoOrderBySqQnumAsc(sqinfo);
+
+        return sqs.stream()
+                .map(sq -> new QuestionDTO(sq.getId(), sq.getSqQuestion(), sq.getSqQnum()))
+                .collect(Collectors.toList());
+    }
+
+    // 입력 받은 답 처리
+    @Transactional
+    public void solveQuiz(SolveQuizDTO solveQuizDTO) {
+        User user = userRepository.findById(solveQuizDTO.getUid())
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        Sqinfo sqinfo = sqinfoRepository.findBySqTitle(solveQuizDTO.getQuizTitle())
+                .orElseThrow(() -> new RuntimeException("Quiz not found"));
+
+        for (AnswerDTO answerDTO : solveQuizDTO.getAnswers()) {
+            Sq sq = sqRepository.findById(answerDTO.getQuestionId())
+                    .orElseThrow(() -> new RuntimeException("Question not found"));
+
+            Sqresult sqresult = new Sqresult();
+            sqresult.setUser(user);
+            sqresult.setSqinfo(sqinfo);
+            sqresult.setUSqA(answerDTO.getUserAnswer());
+            sqresult.setSqQnum(sq.getSqQnum());
+            sqresult.setTime(new Timestamp(System.currentTimeMillis()));
+
+            // 정답 체크
+            sqresult.setSqCheck(sq.getSqAnswer().equalsIgnoreCase(answerDTO.getUserAnswer()));
+
+            sqresultRepository.save(sqresult);
+        }
+    }
+
+    // 풀이한 답 처리
+    public List<String> getSolvedQuizTitlesByUser(String uid) {
+        return sqresultRepository.findDistinctSqTitlesByUserUid(uid);
+    }
+
+    public SqDTO getSolvedQuizByUserAndTitle(String uid, String title) {
+        User user = userRepository.findById(uid)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        Sqinfo sqinfo = sqinfoRepository.findByUserAndSqTitle(user, title)
+                .orElseThrow(() -> new RuntimeException("Quiz not found"));
+
+        List<Sq> sqs = sqRepository.findBySqinfoOrderBySqQnumAsc(sqinfo);
+        List<Sqresult> sqresults = sqresultRepository.findBySqinfoAndUserOrderBySqQnumAsc(sqinfo, user);
+
+        SqDTO sqDTO = new SqDTO();
+        sqDTO.setUid(uid);
+        sqDTO.setQuizTitle(title);
+        sqDTO.setQuestionsAndAnswers(new ArrayList<>());
+        sqDTO.setSqresults(new ArrayList<>());
+
+        for (Sq sq : sqs) {
+            QuestionAnswerDTO qaDTO = new QuestionAnswerDTO();
+            qaDTO.setQuestion(sq.getSqQuestion());
+            qaDTO.setAnswer(sq.getSqAnswer());
+            qaDTO.setSqQnum(sq.getSqQnum());
+            sqDTO.getQuestionsAndAnswers().add(qaDTO);
+        }
+
+        for (Sqresult sqresult : sqresults) {
+            SqresultDTO sqresultDTO = new SqresultDTO();
+            sqresultDTO.setUserAnswer(sqresult.getUSqA());
+            sqresultDTO.setCorrect(sqresult.getSqCheck());
+            sqresultDTO.setTime(sqresult.getTime());
+            sqresultDTO.setSqQnum(sqresult.getSqQnum());
+            sqDTO.getSqresults().add(sqresultDTO);
         }
 
         return sqDTO;
