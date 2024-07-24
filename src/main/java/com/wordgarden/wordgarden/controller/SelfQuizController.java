@@ -23,7 +23,7 @@ public class SelfQuizController {
 
     @PostMapping("/create")
     public ResponseEntity<Map<String, Object>> createCustomQuiz(@RequestBody SqDTO sqDTO) {
-        List<Long> quizIds = selfQuizService.createCustomQuiz(sqDTO);  // 여기를 수정했습니다.
+        List<Long> quizIds = selfQuizService.createCustomQuiz(sqDTO);
 
         Map<String, Object> response = new HashMap<>();
         response.put("quizTitle", sqDTO.getQuizTitle());
@@ -37,9 +37,4 @@ public class SelfQuizController {
         return ResponseEntity.ok(quizzes);
     }
 
-    @GetMapping("/solved/{uid}")
-    public ResponseEntity<List<SqDTO>> getSolvedQuizzesByUser(@PathVariable String uid) {
-        List<SqDTO> quizzes = selfQuizService.getSolvedQuizzesByUser(uid);
-        return ResponseEntity.ok(quizzes);
-    }
 }

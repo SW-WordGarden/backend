@@ -7,9 +7,8 @@ import java.util.List;
 
 @Getter
 @Setter
-public class SqDTO {
+public class GroupedSqDTO {
     private String uid;
     private String quizTitle;
     private List<QuestionAnswerDTO> questionsAndAnswers;
-    private List<SqresultDTO> sqresults;
 }

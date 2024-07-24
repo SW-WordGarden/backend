@@ -2,6 +2,7 @@ package com.wordgarden.wordgarden.service;
 
 import com.wordgarden.wordgarden.dto.SqDTO;
 import com.wordgarden.wordgarden.dto.QuestionAnswerDTO;
+import com.wordgarden.wordgarden.dto.SqresultDTO;
 import com.wordgarden.wordgarden.entity.Sq;
 import com.wordgarden.wordgarden.entity.Sqinfo;
 import com.wordgarden.wordgarden.entity.Sqresult;
@@ -15,8 +16,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.stream.Collectors;
+import java.util.Map;
 
 @Service
 public class SelfQuizService {
@@ -38,100 +40,61 @@ public class SelfQuizService {
         User user = userRepository.findById(sqDTO.getUid())
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
+        if (sqinfoRepository.existsByUserAndSqTitle(user, sqDTO.getQuizTitle())) {
+            throw new RuntimeException("A quiz with this title already exists for this user");
+        }
+
+        Sqinfo sqinfo = new Sqinfo();
+        sqinfo.setUser(user);
+        sqinfo.setSqTitle(sqDTO.getQuizTitle());
+        Sqinfo savedSqinfo = sqinfoRepository.save(sqinfo);
+
         List<Long> createdSqIds = new ArrayList<>();
 
         for (int i = 0; i < sqDTO.getQuestionsAndAnswers().size(); i++) {
             QuestionAnswerDTO qaDTO = sqDTO.getQuestionsAndAnswers().get(i);
-
-            Sqinfo sqinfo = new Sqinfo();
-            sqinfo.setUser(user);
-            sqinfo.setSqTitle(sqDTO.getQuizTitle());
-            Sqinfo savedSqinfo = sqinfoRepository.save(sqinfo);
 
             Sq sq = new Sq();
             sq.setSqinfo(savedSqinfo);
             sq.setSqQuestion(qaDTO.getQuestion());
             sq.setSqAnswer(qaDTO.getAnswer());
             sq.setSqQnum(i + 1);
-            sqRepository.save(sq);
+            sq.setSqTitle(sqDTO.getQuizTitle());  // 여기에 타이틀 설정 추가
+            Sq savedSq = sqRepository.save(sq);
 
-            createdSqIds.add(savedSqinfo.getSqId());
+            createdSqIds.add(savedSq.getId());
         }
 
         return createdSqIds;
     }
 
-    public List<SqDTO> getCustomQuizzesByUser(String uid) {
-        User user = userRepository.findById(uid)
-                .orElseThrow(() -> new RuntimeException("User not found"));
-
-        List<Sqinfo> sqinfos = sqinfoRepository.findByUser(user);
-        List<SqDTO> quizzes = new ArrayList<>();
-
-        for (Sqinfo sqinfo : sqinfos) {
-            SqDTO sqDTO = new SqDTO();
-            sqDTO.setQuizTitle(sqinfo.getSqTitle());
-            sqDTO.setUid(uid);
-
-            List<QuestionAnswerDTO> questionsAndAnswers = new ArrayList<>();
-            List<Sq> sqs = sqRepository.findBySqinfoOrderBySqQnum(sqinfo);
-
-            for (Sq sq : sqs) {
-                QuestionAnswerDTO qaDTO = new QuestionAnswerDTO();
-                qaDTO.setQuestion(sq.getSqQuestion());
-                qaDTO.setAnswer(sq.getSqAnswer());
-                questionsAndAnswers.add(qaDTO);
-            }
-
-            sqDTO.setQuestionsAndAnswers(questionsAndAnswers);
-            quizzes.add(sqDTO);
-        }
-
-        return quizzes;
-    }
-
     public List<SqDTO> getCreatedQuizzesByUser(String uid) {
-        User user = userRepository.findByUid(uid)
-                .orElseThrow(() -> new RuntimeException("User not found"));
-
-        List<Sqinfo> sqinfos = sqinfoRepository.findByUser(user);
-        return convertSqinfosToSqDTOs(sqinfos);
-    }
-
-    public List<SqDTO> getSolvedQuizzesByUser(String uid) {
-        User user = userRepository.findByUid(uid)
-                .orElseThrow(() -> new RuntimeException("User not found"));
-
-        List<Sqresult> sqresults = sqresultRepository.findByUser(user);
-        List<Sqinfo> sqinfos = sqresults.stream()
-                .map(Sqresult::getSqinfo)
-                .distinct()
-                .collect(Collectors.toList());
+        List<Sqinfo> sqinfos = sqinfoRepository.findByUserUidOrderBySqTitleAsc(uid);
         return convertSqinfosToSqDTOs(sqinfos);
     }
 
     private List<SqDTO> convertSqinfosToSqDTOs(List<Sqinfo> sqinfos) {
-        List<SqDTO> quizzes = new ArrayList<>();
+        List<SqDTO> result = new ArrayList<>();
 
         for (Sqinfo sqinfo : sqinfos) {
             SqDTO sqDTO = new SqDTO();
-            sqDTO.setQuizTitle(sqinfo.getSqTitle());
             sqDTO.setUid(sqinfo.getUser().getUid());
+            sqDTO.setQuizTitle(sqinfo.getSqTitle());
+            sqDTO.setQuestionsAndAnswers(new ArrayList<>());
 
-            List<QuestionAnswerDTO> questionsAndAnswers = new ArrayList<>();
-            List<Sq> sqs = sqRepository.findBySqinfoOrderBySqQnum(sqinfo);
-
+            List<Sq> sqs = sqRepository.findBySqinfoOrderBySqQnumAsc(sqinfo);
             for (Sq sq : sqs) {
                 QuestionAnswerDTO qaDTO = new QuestionAnswerDTO();
                 qaDTO.setQuestion(sq.getSqQuestion());
                 qaDTO.setAnswer(sq.getSqAnswer());
-                questionsAndAnswers.add(qaDTO);
+                qaDTO.setSqQnum(sq.getSqQnum());
+                sqDTO.getQuestionsAndAnswers().add(qaDTO);
             }
 
-            sqDTO.setQuestionsAndAnswers(questionsAndAnswers);
-            quizzes.add(sqDTO);
+            result.add(sqDTO);
         }
 
-        return quizzes;
+        return result;
     }
+
 }

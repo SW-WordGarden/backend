@@ -1,5 +1,4 @@
 package com.wordgarden.wordgarden.repository;
-import com.wordgarden.wordgarden.entity.Sq;
 import com.wordgarden.wordgarden.entity.Sqinfo;
 import com.wordgarden.wordgarden.entity.User;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -9,5 +8,6 @@ import java.util.List;
 
 @Repository
 public interface SqinfoRepository extends JpaRepository<Sqinfo, Long> {
-    List<Sqinfo> findByUser(User user);
+    List<Sqinfo> findByUserUidOrderBySqTitleAsc(String uid);
+    boolean existsByUserAndSqTitle(User user, String sqTitle);
 }

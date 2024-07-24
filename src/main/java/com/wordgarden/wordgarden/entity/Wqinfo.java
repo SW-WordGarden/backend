@@ -21,6 +21,9 @@ public class Wqinfo {
     @Column(name = "wq_answer", columnDefinition = "LONGTEXT")
     private String wqAnswer;
 
+    @Column(name = "wq_title", length = 255)
+    private String wqTitle;
+
     @ManyToOne
     @JoinColumn(name = "word_id")
     private Word word;

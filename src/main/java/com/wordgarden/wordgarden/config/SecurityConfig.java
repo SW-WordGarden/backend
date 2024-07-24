@@ -30,8 +30,8 @@ public class SecurityConfig {
             .authorizeHttpRequests(authorize -> authorize
                 .requestMatchers("/login/**").permitAll()
                 .requestMatchers("/word/**").permitAll()
-                .requestMatchers("/sq/**").permitAll()
                 .requestMatchers("/like/**").permitAll()
+                .requestMatchers("/sq/**").permitAll()
                 .anyRequest().authenticated()
             )
             .addFilterBefore(customAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
