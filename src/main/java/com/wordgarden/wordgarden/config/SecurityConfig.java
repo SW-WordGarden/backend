@@ -30,6 +30,7 @@ public class SecurityConfig {
             .authorizeHttpRequests(authorize -> authorize
                 .requestMatchers("/login/**").permitAll()
                 .requestMatchers("/word/**").permitAll()
+                .requestMatchers("/like/**").permitAll()
                 .requestMatchers("/sq/**").permitAll()
                 .anyRequest().authenticated()
             )

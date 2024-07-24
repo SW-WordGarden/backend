@@ -5,8 +5,10 @@ import lombok.Setter;
 
 @Getter
 @Setter
-public class QuestionAnswerDTO {
+public class SqresultDTO {
     private String question;
     private String answer;
     private int sqQnum;
+    private String userAnswer;
+    private Boolean correct;
 }
