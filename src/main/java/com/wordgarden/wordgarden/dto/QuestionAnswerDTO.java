@@ -8,4 +8,5 @@ import lombok.Setter;
 public class QuestionAnswerDTO {
     private String question;
     private String answer;
+    private int sqQnum;
 }

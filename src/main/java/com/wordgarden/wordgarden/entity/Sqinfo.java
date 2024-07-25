@@ -4,6 +4,8 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.util.List;
+
 @Entity
 @Getter
 @Setter
@@ -18,9 +20,9 @@ public class Sqinfo {
     private String sqTitle;
 
     @ManyToOne
-    @JoinColumn(name = "uid", referencedColumnName = "uid")
+    @JoinColumn(name = "uid")
     private User user;
 
-    @OneToOne(mappedBy = "sqinfo")
-    private Sq sq;
+    @OneToMany(mappedBy = "sqinfo")
+    private List<Sq> sqs;
 }

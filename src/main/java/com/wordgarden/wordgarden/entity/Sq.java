@@ -23,7 +23,10 @@ public class Sq {
     @Column(name = "sq_answer", length = 255)
     private String sqAnswer;
 
+    @Column(name = "sq_title", length = 255)
+    private String sqTitle;
+
     @ManyToOne
-    @JoinColumn(name = "sqinfo_id", referencedColumnName = "sq_id")
+    @JoinColumn(name = "sqinfo_id")
     private Sqinfo sqinfo;
 }
