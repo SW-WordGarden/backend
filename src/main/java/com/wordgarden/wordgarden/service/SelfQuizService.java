@@ -144,14 +144,11 @@ public class SelfQuizService {
     }
 
     public SqDTO getSolvedQuizByUserAndTitle(String uid, String title) {
-        User user = userRepository.findById(uid)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+        List<Sqresult> results = sqresultRepository.findByUser_UidAndSqinfo_SqTitle(uid, title);
 
-        Sqinfo sqinfo = sqinfoRepository.findByUserAndSqTitle(user, title)
-                .orElseThrow(() -> new RuntimeException("Quiz not found"));
-
-        List<Sq> sqs = sqRepository.findBySqinfoOrderBySqQnumAsc(sqinfo);
-        List<Sqresult> sqresults = sqresultRepository.findBySqinfoAndUserOrderBySqQnumAsc(sqinfo, user);
+        if (results.isEmpty()) {
+            throw new RuntimeException("No solved quiz found for user " + uid + " and title " + title);
+        }
 
         SqDTO sqDTO = new SqDTO();
         sqDTO.setUid(uid);
@@ -159,21 +156,23 @@ public class SelfQuizService {
         sqDTO.setQuestionsAndAnswers(new ArrayList<>());
         sqDTO.setSqresults(new ArrayList<>());
 
-        for (Sq sq : sqs) {
+        for (Sqresult result : results) {
+            SqresultDTO sqresultDTO = new SqresultDTO();
+            sqresultDTO.setUserAnswer(result.getUSqA());
+            sqresultDTO.setCorrect(result.getSqCheck());
+            sqresultDTO.setTime(result.getTime());
+            sqresultDTO.setSqQnum(result.getSqQnum());
+            sqDTO.getSqresults().add(sqresultDTO);
+        }
+
+        // 원본 문제와 정답 정보 조회
+        List<Sq> questions = sqRepository.findBySqTitle(title);
+        for (Sq sq : questions) {
             QuestionAnswerDTO qaDTO = new QuestionAnswerDTO();
             qaDTO.setQuestion(sq.getSqQuestion());
             qaDTO.setAnswer(sq.getSqAnswer());
             qaDTO.setSqQnum(sq.getSqQnum());
             sqDTO.getQuestionsAndAnswers().add(qaDTO);
-        }
-
-        for (Sqresult sqresult : sqresults) {
-            SqresultDTO sqresultDTO = new SqresultDTO();
-            sqresultDTO.setUserAnswer(sqresult.getUSqA());
-            sqresultDTO.setCorrect(sqresult.getSqCheck());
-            sqresultDTO.setTime(sqresult.getTime());
-            sqresultDTO.setSqQnum(sqresult.getSqQnum());
-            sqDTO.getSqresults().add(sqresultDTO);
         }
 
         return sqDTO;
