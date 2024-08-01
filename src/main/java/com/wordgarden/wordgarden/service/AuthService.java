@@ -5,6 +5,7 @@ import com.wordgarden.wordgarden.repository.UserRepository;
 import com.wordgarden.wordgarden.security.JwtTokenProvider;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class AuthService {
@@ -22,6 +23,7 @@ public class AuthService {
         return userRepository.save(user);
     }
 
+    @Transactional(readOnly = true)
     public User getUserByUid(String uid) {
         return userRepository.findById(uid).orElse(null);
     }

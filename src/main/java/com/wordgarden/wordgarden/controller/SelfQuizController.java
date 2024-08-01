@@ -5,6 +5,7 @@ import com.wordgarden.wordgarden.dto.SolveQuizDTO;
 import com.wordgarden.wordgarden.dto.SqDTO;
 import com.wordgarden.wordgarden.service.SelfQuizService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -24,51 +25,78 @@ public class SelfQuizController {
     }
 
     @PostMapping("/create")
-    public ResponseEntity<Map<String, Object>> createCustomQuiz(@RequestBody SqDTO sqDTO) {
-        List<Long> quizIds = selfQuizService.createCustomQuiz(sqDTO);
-
-        Map<String, Object> response = new HashMap<>();
-        response.put("quizTitle", sqDTO.getQuizTitle());
-
-        return ResponseEntity.ok(response);
+    public ResponseEntity<Object> createCustomQuiz(@RequestBody SqDTO sqDTO) {
+        try {
+            List<Long> quizIds = selfQuizService.createCustomQuiz(sqDTO);
+            Map<String, Object> response = new HashMap<>();
+            response.put("quizTitle", sqDTO.getQuizTitle());
+            response.put("quizIds", quizIds);
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Failed to create quiz: " + e.getMessage());
+        }
     }
 
     @GetMapping("/created/{uid}")
-    public ResponseEntity<List<String>> getCreatedQuizTitlesByUser(@PathVariable String uid) {
-        List<String> quizTitles = selfQuizService.getCreatedQuizTitlesByUser(uid);
-        return ResponseEntity.ok(quizTitles);
+    public ResponseEntity<Object> getCreatedQuizTitlesByUser(@PathVariable String uid) {
+        try {
+            List<String> quizTitles = selfQuizService.getCreatedQuizTitlesByUser(uid);
+            return ResponseEntity.ok(quizTitles);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Failed to retrieve quiz titles: " + e.getMessage());
+        }
     }
 
     @GetMapping("/created/{uid}/{title}")
-    public ResponseEntity<SqDTO> getQuizByUserAndTitle(@PathVariable String uid, @PathVariable String title) {
-        SqDTO quiz = selfQuizService.getQuizByUserAndTitle(uid, title);
-        return ResponseEntity.ok(quiz);
+    public ResponseEntity<Object> getQuizByUserAndTitle(@PathVariable String uid, @PathVariable String title) {
+        try {
+            SqDTO quiz = selfQuizService.getQuizByUserAndTitle(uid, title);
+            return ResponseEntity.ok(quiz);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Failed to retrieve quiz: " + e.getMessage());
+        }
     }
 
     @GetMapping("/quiz/{title}")
-    public ResponseEntity<List<QuestionDTO>> getQuizQuestions(@PathVariable String title) {
-        List<QuestionDTO> questions = selfQuizService.getQuizQuestions(title);
-        return ResponseEntity.ok(questions);
+    public ResponseEntity<Object> getQuizQuestions(@PathVariable String title) {
+        try {
+            List<QuestionDTO> questions = selfQuizService.getQuizQuestions(title);
+            return ResponseEntity.ok(questions);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Failed to retrieve quiz questions: " + e.getMessage());
+        }
     }
 
     @PostMapping("/solve")
-    public ResponseEntity<Map<String, String>> solveQuiz(@RequestBody SolveQuizDTO solveQuizDTO) {
-        selfQuizService.solveQuiz(solveQuizDTO);
-        Map<String, String> response = new HashMap<>();
-        response.put("message", "제출에 성공하였습니다");
-        return ResponseEntity.ok(response);
+    public ResponseEntity<Object> solveQuiz(@RequestBody SolveQuizDTO solveQuizDTO) {
+        try {
+            selfQuizService.solveQuiz(solveQuizDTO);
+            Map<String, String> response = new HashMap<>();
+            response.put("message", "제출에 성공하였습니다");
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Failed to solve quiz: " + e.getMessage());
+        }
     }
 
     @GetMapping("/solved/{uid}")
-    public ResponseEntity<List<String>> getSolvedQuizTitlesByUser(@PathVariable String uid) {
-        List<String> quizTitles = selfQuizService.getSolvedQuizTitlesByUser(uid);
-        return ResponseEntity.ok(quizTitles);
+    public ResponseEntity<Object> getSolvedQuizTitlesByUser(@PathVariable String uid) {
+        try {
+            List<String> quizTitles = selfQuizService.getSolvedQuizTitlesByUser(uid);
+            return ResponseEntity.ok(quizTitles);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Failed to retrieve solved quiz titles: " + e.getMessage());
+        }
     }
 
     @GetMapping("/solved/{uid}/{title}")
-    public ResponseEntity<SqDTO> getSolvedQuizByUserAndTitle(@PathVariable String uid, @PathVariable String title) {
-        SqDTO quiz = selfQuizService.getSolvedQuizByUserAndTitle(uid, title);
-        return ResponseEntity.ok(quiz);
+    public ResponseEntity<Object> getSolvedQuizByUserAndTitle(@PathVariable String uid, @PathVariable String title) {
+        try {
+            SqDTO quiz = selfQuizService.getSolvedQuizByUserAndTitle(uid, title);
+            return ResponseEntity.ok(quiz);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Failed to retrieve solved quiz: " + e.getMessage());
+        }
     }
 
 }
