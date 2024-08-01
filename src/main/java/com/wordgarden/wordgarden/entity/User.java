@@ -1,5 +1,6 @@
 package com.wordgarden.wordgarden.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Getter;
 import lombok.Setter;
 import jakarta.persistence.*;
@@ -33,7 +34,9 @@ public class User {
     @Column(name = "u_provider")
     private String uProvider;
 
-    @OneToMany(mappedBy = "user")
+    @JsonIgnore
+    // 또는 @JsonManagedReference
+    @OneToMany(mappedBy = "user", fetch = FetchType.LAZY)
     private List<Wqresult> wqResults;
 
     @OneToMany(mappedBy = "user")
