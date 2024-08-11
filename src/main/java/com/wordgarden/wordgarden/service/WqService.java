@@ -31,28 +31,30 @@ public class WqService {
     @Autowired
     private UserRepository userRepository;
 
-    public List<WqResponseDto> generateQuiz() {
-        List<Wqinfo> quiz = new ArrayList<>();
+    @Transactional
+    public List<WqResponseDto> generateAndSaveNewQuiz() {
+        List<Wqinfo> newQuiz = new ArrayList<>();
         String quizTitle = "앱 퀴즈 #" + LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyMMddHHmmss"));
 
         List<Word> allWords = wordRepository.findAll();
         Collections.shuffle(allWords);
 
-        generateQuestions(quiz, allWords, quizTitle);
+        generateQuestions(newQuiz, allWords, quizTitle);
 
-        List<Wqinfo> savedQuiz = wqinfoRepository.saveAll(quiz);
+        List<Wqinfo> savedQuiz = wqinfoRepository.saveAll(newQuiz);
         return savedQuiz.stream().map(this::createEnhancedDto).collect(Collectors.toList());
     }
 
     private void generateQuestions(List<Wqinfo> quiz, List<Word> allWords, String quizTitle) {
-        generateQuestionsOfType(quiz, allWords, quizTitle, "write", 0, 2);
-        generateQuestionsOfType(quiz, allWords, quizTitle, "four", 2, 4);
-        generateQuestionsOfType(quiz, allWords, quizTitle, "ox", 6, 4);
+        int startIndex = (int) wqinfoRepository.count();
+        generateQuestionsOfType(quiz, allWords, quizTitle, "write", startIndex, 2);
+        generateQuestionsOfType(quiz, allWords, quizTitle, "four", startIndex + 2, 4);
+        generateQuestionsOfType(quiz, allWords, quizTitle, "ox", startIndex + 6, 4);
     }
 
     private void generateQuestionsOfType(List<Wqinfo> quiz, List<Word> allWords, String quizTitle, String type, int startIndex, int count) {
         for (int i = 0; i < count; i++) {
-            generateQuestion(quiz, allWords.get(startIndex + i), quizTitle, type, startIndex + i);
+            generateQuestion(quiz, allWords.get(i % allWords.size()), quizTitle, type, startIndex + i);
         }
     }
 
@@ -259,5 +261,16 @@ public class WqService {
         this.wqwrongRepository = wqwrongRepository;
         this.userRepository = userRepository;
         this.objectMapper = objectMapper;
+    }
+
+    public Set<String> getQuizTitlesByUserId(String userId) {
+        return wqresultRepository.findDistinctWqTitlesByUserId(userId);
+    }
+
+    public List<Wqinfo> getQuizByTitle(String wqTitle) {
+        log.info("Searching for quiz with title: {}", wqTitle);
+        List<Wqinfo> result = wqinfoRepository.findByWqTitle(wqTitle);
+        log.info("Found {} questions for quiz title: {}", result.size(), wqTitle);
+        return result;
     }
 }
