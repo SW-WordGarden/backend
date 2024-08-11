@@ -42,7 +42,7 @@ public class WordController {
     }
 
     // 특정 단어 조회
-    @GetMapping("/{wordId}")
+    @GetMapping("words/{wordId}")
     public ResponseEntity<WordDTO> getWordById(@PathVariable String wordId) {
         WordDTO word = wordService.getWordById(wordId);
         if (word != null) {
