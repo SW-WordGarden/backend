@@ -5,17 +5,21 @@ import com.wordgarden.wordgarden.dto.WordDTO;
 import com.wordgarden.wordgarden.entity.Word;
 import com.wordgarden.wordgarden.repository.WordRepository;
 import com.wordgarden.wordgarden.service.WordService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
+import java.io.IOException;
+import com.opencsv.exceptions.CsvException;
 import java.util.List;
 import java.util.Optional;
 
 @RestController
 @RequestMapping("/word")
 public class WordController {
+    private static final Logger logger = LoggerFactory.getLogger(WordController.class);
 
     @Autowired
     private WordService wordService;
@@ -24,18 +28,27 @@ public class WordController {
 
     // csv파일에서 단어 로드 후 데이터베이스 저장 -- 서버 구동 동시에 작동되게끔
     @PostMapping("/load")
-    public void loadWordsFromCSV(){
-        wordService.loadWordsFromCSV();
+    public ResponseEntity<String> loadWords() {
+        try {
+            wordService.loadWordsFromCSV();
+            return ResponseEntity.ok("Words loaded successfully");
+        } catch (IOException e) {
+            e.printStackTrace();
+            return ResponseEntity.internalServerError().body("Failed to load words due to IO error: " + e.getMessage());
+        } catch (CsvException e) {
+            e.printStackTrace();
+            return ResponseEntity.internalServerError().body("Failed to parse CSV file: " + e.getMessage());
+        }
     }
 
     // 특정 단어 조회
-    @GetMapping("words/{wordId}")
-    public ResponseEntity<Object> getWordById(@PathVariable String wordId) {
-        Word word = wordRepository.findByWordId(wordId);
+    @GetMapping("/{wordId}")
+    public ResponseEntity<WordDTO> getWordById(@PathVariable String wordId) {
+        WordDTO word = wordService.getWordById(wordId);
         if (word != null) {
             return ResponseEntity.ok(word);
         } else {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Word not found");
+            return ResponseEntity.notFound().build();
         }
     }
 

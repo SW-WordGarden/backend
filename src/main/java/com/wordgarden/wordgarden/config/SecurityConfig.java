@@ -32,6 +32,7 @@ public class SecurityConfig {
                 .requestMatchers("/word/**").permitAll()
                 .requestMatchers("/like/**").permitAll()
                 .requestMatchers("/sq/**").permitAll()
+                .requestMatchers("/wq/**").permitAll()
                 .anyRequest().authenticated()
             )
             .addFilterBefore(customAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);

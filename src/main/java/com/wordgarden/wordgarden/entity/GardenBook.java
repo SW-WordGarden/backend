@@ -13,6 +13,8 @@ public class GardenBook {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    // 보유 식물 이미지 / 도감 이미지 개수
+
     @Column(name = "tree_result", length = 255)
     private String treeResult;
 

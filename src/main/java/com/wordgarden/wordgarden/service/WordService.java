@@ -23,6 +23,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @Service
 public class WordService {
@@ -38,35 +40,57 @@ public class WordService {
     @Autowired
     private LikeRepository likeRepository;
 
+    private static final Logger logger = LoggerFactory.getLogger(WordService.class);
+
 //    @Value("${csv.file.path}")
-    @Value("C:\\python\\test_word.csv")
+    @Value("C:\\Users\\ENC-NP-1597\\Downloads\\complete_word.csv")
     private String csvFilePath;
 
     @PostConstruct
-    public void init(){
-        loadWordsFromCSV();
+    public void init() {
+        try {
+            loadWordsFromCSV();
+        } catch (IOException e) {
+            System.err.println("Failed to load words from CSV due to IO error: " + e.getMessage());
+            e.printStackTrace();
+            throw new RuntimeException("Failed to initialize WordService due to IO error", e);
+        } catch (CsvException e) {
+            System.err.println("Failed to parse CSV file: " + e.getMessage());
+            e.printStackTrace();
+            throw new RuntimeException("Failed to initialize WordService due to CSV parsing error", e);
+        }
     }
 
     // csv파일에서 단어 로드 후 데이터베이스 저장
-    public void loadWordsFromCSV() {
+    @Transactional
+    public void loadWordsFromCSV() throws IOException, CsvException {
+        logger.info("Starting to load words from CSV file: {}", csvFilePath);
         try (CSVReader reader = new CSVReader(new FileReader(csvFilePath, StandardCharsets.UTF_8))) {
             List<String[]> records = reader.readAll();
-            for (String[] record : records) {
+            logger.info("Read {} records from CSV file", records.size());
+            int savedCount = 0;
+            // Skip the header
+            for (int i = 1; i < records.size(); i++) {
+                String[] record = records.get(i);
+                if (record.length < 4) {
+                    logger.warn("Invalid record: {}", String.join(", ", record));
+                    continue;
+                }
                 Word word = new Word();
                 word.setCategory(record[0]);
                 word.setWord(record[1]);
                 word.setWordInfo(record[2]);
-                word.setThumbnail(record[3]);
-                word.setWordId(record[4]);
-                wordRepository.save(word);
+                word.setWordId(record[3]);
+                try {
+                    wordRepository.save(word);
+                    savedCount++;
+                } catch (Exception e) {
+                    logger.error("Error saving word: {}", word.getWord(), e);
+                }
             }
-            // 단어 저장 후 Learning 생성
-            generateInitialLearning();
-        } catch (IOException | CsvException e) {
-            e.printStackTrace();
+            logger.info("Saved {} words to the database", savedCount);
         }
     }
-
     // Learning 초기 생성
     @Transactional
     public void generateInitialLearning() {
@@ -114,14 +138,18 @@ public class WordService {
 
     // Learning을 조회하여 DTO 리스트로 변환하여 반환
     public List<LearningDTO> getLearningWords() {
-        List<Learning> learningList = learningRepository.findAll();
-        return convertToLearningDTOList(learningList);
+        List<Word> words = wordRepository.findAll();
+        return words.stream()
+            .map(this::convertToLearningDTO)
+            .collect(Collectors.toList());
     }
 
     // 카테고리별 Learning을 조회하여 DTO 리스트로 변환하여 반환
     public List<LearningDTO> getLearningWordsByCategory(String category) {
-        List<Learning> learningList = learningRepository.findByWordEntityCategory(category);
-        return convertToLearningDTOList(learningList);
+        List<Word> words = wordRepository.findByCategory(category);
+        return words.stream()
+            .map(this::convertToLearningDTO)
+            .collect(Collectors.toList());
     }
 
     // Weekly 테이블을 초기화하고 지난주 Learning을 기반으로 Weekly 데이터 생성
@@ -141,21 +169,21 @@ public class WordService {
     }
 
     // DTO 변환 메서드들
-    private LearningDTO convertToLearningDTO(Learning learning) {
+    private LearningDTO convertToLearningDTO(Word word) {
         LearningDTO dto = new LearningDTO();
-        dto.setId(learning.getId());
-        dto.setWordId(learning.getWordEntity().getWordId());
-        dto.setWord(learning.getWord());
-        dto.setCategory(learning.getWordEntity().getCategory());
-        dto.setWordInfo(learning.getWordEntity().getWordInfo());
+        dto.setId(Long.parseLong(word.getWordId().replaceAll("\\D+", "")));  // Extract numeric part
+        dto.setWord(word.getWord());
+        dto.setWordId(word.getWordId());
+        dto.setCategory(word.getCategory());
+        dto.setWordInfo(word.getWordInfo());
         return dto;
     }
 
-    private List<LearningDTO> convertToLearningDTOList(List<Learning> learningList) {
-        return learningList.stream()
-                .map(this::convertToLearningDTO)
-                .collect(Collectors.toList());
-    }
+//    private List<LearningDTO> convertToLearningDTOList(List<Learning> learningList) {
+//        return learningList.stream()
+//                .map(this::convertToLearningDTO)
+//                .collect(Collectors.toList());
+//    }
 
     private WordDTO convertToLearningWordDTO(Learning learning) {
         WordDTO dto = new WordDTO();
@@ -175,42 +203,49 @@ public class WordService {
     // 좋아요 토글
     @Transactional
     public boolean toggleLike(String uid, String wordId) {
-        User user = userRepository.findByUid(uid)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+        User user = userRepository.findById(uid)
+                .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다: " + uid));
         Word word = wordRepository.findById(wordId)
-                .orElseThrow(() -> new RuntimeException("Word not found"));
+                .orElseThrow(() -> new RuntimeException("단어를 찾을 수 없습니다: " + wordId));
 
         Like like = likeRepository.findByUserAndWord(user, word);
-        if (like == null) {
-            // 좋아요가 없으면 추가
-            like = new Like();
-            like.setUser(user);
-            like.setWord(word);
-            likeRepository.save(like);
-            return true;
-        } else {
-            // 좋아요가 있으면 제거
+        if (like != null) {
             likeRepository.delete(like);
             return false;
+        } else {
+            Like newLike = new Like();
+            newLike.setUser(user);
+            newLike.setWord(word);
+            likeRepository.save(newLike);
+            return true;
         }
+    }
+
+    @Transactional(readOnly = true)
+    public WordDTO getWordById(String wordId) {
+        Word word = wordRepository.findById(wordId).orElse(null);
+        return word != null ? convertWordToDTO(word) : null;
     }
 
     // 사용자의 좋아요 리스트 조회
     public List<WordDTO> getLikedWords(String uid) {
-        User user = userRepository.findByUid(uid)
-                .orElseThrow(() -> new RuntimeException("User not found"));
-        List<Like> likes = likeRepository.findByUser(user);
-        return likes.stream()
-                .map(like -> convertWordToDTO(like.getWord()))
+        User user = userRepository.findById(uid)
+                .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다: " + uid));
+
+        List<Word> likedWords = likeRepository.findLikedWordsByUser(user);
+
+        return likedWords.stream()
+                .map(this::convertToWordDTO)
                 .collect(Collectors.toList());
     }
 
     // 특정 단어의 좋아요 상태 확인
     public boolean checkLikeStatus(String uid, String wordId) {
-        User user = userRepository.findByUid(uid)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+        User user = userRepository.findById(uid)
+                .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다: " + uid));
         Word word = wordRepository.findById(wordId)
-                .orElseThrow(() -> new RuntimeException("Word not found"));
+                .orElseThrow(() -> new RuntimeException("단어를 찾을 수 없습니다: " + wordId));
+
         return likeRepository.findByUserAndWord(user, word) != null;
     }
 
@@ -220,7 +255,16 @@ public class WordService {
         dto.setWord(word.getWord());
         dto.setCategory(word.getCategory());
         dto.setWordInfo(word.getWordInfo());
-        // 필요한 다른 필드들도 설정
+        return dto;
+    }
+
+    // 좋아요에서 사용
+    private WordDTO convertToWordDTO(Word word) {
+        WordDTO dto = new WordDTO();
+        dto.setWordId(word.getWordId());
+        dto.setWord(word.getWord());
+        dto.setCategory(word.getCategory());
+        dto.setWordInfo(word.getWordInfo());
         return dto;
     }
 }

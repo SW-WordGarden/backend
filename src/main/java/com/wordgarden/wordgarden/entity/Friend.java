@@ -15,8 +15,8 @@ public class Friend {
     @Column(name = "fu_id")
     private Long fuId;
 
-    @Column(name = "fu_url")
-    private String fuUrl;
+//    @Column(name = "fu_url")
+//    private String fuUrl;
 
     @ManyToOne
     @JoinColumn(name = "uid")
