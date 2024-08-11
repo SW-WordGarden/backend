@@ -12,20 +12,20 @@ import java.util.List;
 @Setter
 public class Word {
     @Id
-    @Column(name = "word_id")
+    @Column(name = "word_id")   // 단어 아이디
     private String wordId;
 
-    @Column(name = "word")
+    @Column(name = "word")      // 단어
     private String word;
 
-    @Column(name = "category", length = 255)
+    @Column(name = "category", length = 255)    //카테고리
     private String category;
 
-    @Column(name = "word_info", columnDefinition = "LONGTEXT")
+    @Column(name = "word_info", columnDefinition = "LONGTEXT")      // 단어 뜻
     private String wordInfo;
 
-    @Column(name = "thumbnail", columnDefinition = "LONGTEXT")
-    private String thumbnail;
+//    @Column(name = "thumbnail", columnDefinition = "LONGTEXT")
+//    private String thumbnail;
 
     @OneToMany(mappedBy = "word")
     private List<Wqinfo> wqInfos;

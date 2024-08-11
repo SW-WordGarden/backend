@@ -16,20 +16,32 @@ public class Wqresult {
     @Column(name = "wqresult_id")
     private Long wqResultId;
 
-    @Column(name = "wq_a")
-    private String wqA;
+    @Column(name = "u_wq_a")      // 사용자 입력 답
+    private String uWqA;
 
-    @Column(name = "wq_check")
+    @Column(name = "wq_check")      // 오답 여부
     private Boolean wqCheck;
 
-    @Column(name = "time")
+    @Column(name = "time")      // 풀이당시시간
     private Timestamp time;
 
     @ManyToOne
-    @JoinColumn(name = "wq_id")
+    @JoinColumn(name = "wq_id")     // 푼 단어 퀴즈 아이디
     private Wqinfo wqInfo;
 
     @ManyToOne
-    @JoinColumn(name = "uid")
+    @JoinColumn(name = "uid")   // 푼 사용자 아이디
     private User user;
+
+    @Override
+    public String toString() {
+        return "Wqresult{" +
+                "wqResultId=" + wqResultId +
+                ", uWqA='" + uWqA + '\'' +
+                ", wqCheck=" + wqCheck +
+                ", time=" + time +
+                ", wqInfo=" + (wqInfo != null ? wqInfo.getWqId() : "null") +
+                ", user=" + (user != null ? user.getUid() : "null") +
+                '}';
+    }
 }

@@ -14,6 +14,9 @@ public interface LikeRepository extends JpaRepository<Like, Long> {
     @Query("SELECT l FROM Like l WHERE l.user.uid = :userId")
     List<Like> findLikesByUserId(@Param("userId") String userId);
 
+    @Query("SELECT l.word FROM Like l WHERE l.user = :user")
+    List<Word> findLikedWordsByUser(@Param("user") User user);
+
     // 사용자와 단어를 기준으로 좋아요 찾기
     Like findByUserAndWord(User user, Word word);
 

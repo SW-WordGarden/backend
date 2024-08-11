@@ -13,26 +13,26 @@ import java.util.List;
 @Table(name = "user_tb")
 public class User {
     @Id
-    @Column(name = "uid")
+    @Column(name = "uid")   // 사용자 아이디
     private String uid;
 
-    @Column(name = "u_rank")
+    @Column(name = "u_rank")    // 등수
     private Integer uRank;
 
-    @Column(name = "u_point")
+    @Column(name = "u_point")   // 포인트
     private Integer uPoint;
 
-    @Column(name = "u_name")
+    @Column(name = "u_name")    // 닉네임
     private String uName;
 
-    @Column(name = "u_image", columnDefinition = "LONGTEXT")
+    @Column(name = "u_image", columnDefinition = "LONGTEXT")    //썸네일
     private String uImage;
 
-    @Column(name = "u_url", length = 500)
-    private String uUrl;
+//    @Column(name = "u_url", length = 500)
+//    private String uUrl;
 
     @Column(name = "u_provider")
-    private String uProvider;
+    private String uProvider;   // 소셜로그인 플랫폼
 
     @JsonIgnore
     // 또는 @JsonManagedReference

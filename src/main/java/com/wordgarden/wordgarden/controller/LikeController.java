@@ -54,7 +54,8 @@ public class LikeController {
             }
             return ResponseEntity.ok(likedWords);
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Failed to retrieve liked words: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("좋아요 단어 목록 조회 실패: " + e.getMessage());
         }
     }
 
@@ -65,7 +66,7 @@ public class LikeController {
             boolean isLiked = wordService.checkLikeStatus(uid, wordId);
             return ResponseEntity.ok(isLiked);
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Failed to check like status: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("좋아요 상태 확인 실패: " + e.getMessage());
         }
     }
 }

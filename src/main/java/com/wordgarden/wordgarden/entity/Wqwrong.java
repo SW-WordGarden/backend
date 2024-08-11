@@ -1,5 +1,6 @@
 package com.wordgarden.wordgarden.entity;
 
+import com.wordgarden.wordgarden.dto.WrongAnswerDto;
 import jakarta.persistence.Entity;
 import jakarta.persistence.*;
 import lombok.Getter;
@@ -27,4 +28,11 @@ public class Wqwrong {
     @JoinColumn(name = "uid")
     private User user;
 
+    public WrongAnswerDto toDto() {
+        WrongAnswerDto dto = new WrongAnswerDto();
+        dto.setWqId(this.wqInfo.getWqId());
+        dto.setWord(this.word.getWord());
+        dto.setWordInfo(this.word.getWordInfo());
+        return dto;
+    }
 }

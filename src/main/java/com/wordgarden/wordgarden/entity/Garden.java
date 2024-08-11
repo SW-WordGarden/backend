@@ -16,6 +16,10 @@ public class Garden {
     @Column(name = "tree", length = 255)
     private String tree;
 
+    // 사용자가 물 뿌리개 갯수 추가 필요
+    @Column(name = "water")
+    private Integer water;
+
     @Column(name = "tree_grow")
     private Integer treeGrow;
 
@@ -25,4 +29,7 @@ public class Garden {
     @ManyToOne
     @JoinColumn(name = "uid", referencedColumnName = "uid")
     private User user;
+
+    @Column(name = "coin")
+    private Integer coin;
 }

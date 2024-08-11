@@ -2,6 +2,7 @@ package com.wordgarden.wordgarden.controller;
 
 import com.wordgarden.wordgarden.dto.AuthenticationResponse;
 import com.wordgarden.wordgarden.dto.LoginRequestDTO;
+import com.wordgarden.wordgarden.dto.UserDto;
 import com.wordgarden.wordgarden.entity.User;
 import com.wordgarden.wordgarden.security.JwtTokenProvider;
 import com.wordgarden.wordgarden.service.AuthService;
@@ -28,21 +29,18 @@ public class AuthController {
         String nickname = loginRequest.getNickname();
         String provider = loginRequest.getProvider();
 
-        // 처리 로직
         User user = authService.saveOrUpdateUser(uid, nickname, provider);
+        UserDto userDto = authService.getUserByUid(user.getUid());
 
-        // AuthenticationResponse 객체 생성 및 반환
-        return ResponseEntity.ok(user);
+        return ResponseEntity.ok(userDto);
     }
-
 
     @GetMapping("/user/{uid}")
     public ResponseEntity<Object> getUserByUid(@PathVariable String uid) {
-        User user = authService.getUserByUid(uid);
-        if (user != null) {
-            return ResponseEntity.ok(user);
-        }
-        else{
+        UserDto userDto = authService.getUserByUid(uid);
+        if (userDto != null) {
+            return ResponseEntity.ok(userDto);
+        } else {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("User not found");
         }
     }

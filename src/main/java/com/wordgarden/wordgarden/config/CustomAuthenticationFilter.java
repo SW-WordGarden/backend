@@ -1,5 +1,6 @@
 package com.wordgarden.wordgarden.config;
 
+import com.wordgarden.wordgarden.dto.UserDto;
 import com.wordgarden.wordgarden.entity.User;
 import com.wordgarden.wordgarden.service.AuthService;
 import jakarta.servlet.FilterChain;
@@ -28,9 +29,9 @@ public class CustomAuthenticationFilter extends OncePerRequestFilter {
             throws ServletException, IOException {
         String uid = request.getHeader("X-User-UID");
         if (uid != null && !uid.isEmpty()) {
-            User user = authService.getUserByUid(uid);
-            if (user != null) {
-                UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(user, null, null);
+            UserDto userDto = authService.getUserByUid(uid);
+            if (userDto != null) {
+                UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(userDto, null, null);
                 SecurityContextHolder.getContext().setAuthentication(authentication);
             }
         }
