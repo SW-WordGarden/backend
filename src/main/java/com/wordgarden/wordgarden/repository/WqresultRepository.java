@@ -11,4 +11,6 @@ import java.util.Set;
 public interface WqresultRepository extends JpaRepository<Wqresult, Long> {
     @Query("SELECT DISTINCT w.wqInfo.wqTitle FROM Wqresult w WHERE w.user.uid = :userId")
     Set<String> findDistinctWqTitlesByUserId(String userId);
+    long countByUserUid(String uid);
+    long countByUserUidAndWqCheckTrue(String uid);
 }
