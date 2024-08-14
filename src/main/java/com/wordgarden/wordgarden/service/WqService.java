@@ -34,7 +34,7 @@ public class WqService {
     @Transactional
     public List<WqResponseDto> generateAndSaveNewQuiz() {
         List<Wqinfo> newQuiz = new ArrayList<>();
-        String quizTitle = "앱 퀴즈 #" + LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyMMddHHmmss"));
+        String quizTitle = "앱 퀴즈_" + LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyMMddHHmmss"));
 
         List<Word> allWords = wordRepository.findAll();
         Collections.shuffle(allWords);
@@ -103,12 +103,12 @@ public class WqService {
     }
 
     private void generateWriteInQuestion(Wqinfo question) {
-        question.setWqQuestion("다음 단어의 뜻을 정확하게 작성하세요.\n" + question.getWord().getWord());
-        question.setWqAnswer(question.getWord().getWordInfo());
+        question.setWqQuestion("다음 뜻에 해당하는 단어를 작성하세요.\n" + question.getWord().getWordInfo());
+        question.setWqAnswer(question.getWord().getWord());
     }
 
     private void generateOXQuestion(Wqinfo question, List<Word> allWords) {
-        question.setWqQuestion("다음 중 뜻이 적절하다면 O아니라면 X를 선택하세요.");
+        question.setWqQuestion("다음 단어와 뜻이 올바르게 연결되었다면 O, 아니라면 X를 선택하세요.");
         boolean isCorrect = new Random().nextBoolean();
 
         if (isCorrect) {
@@ -267,10 +267,30 @@ public class WqService {
         return wqresultRepository.findDistinctWqTitlesByUserId(userId);
     }
 
-    public List<Wqinfo> getQuizByTitle(String wqTitle) {
+    // 타이틀로 큊 가져오기
+    public List<WqResponseDto> getQuizByTitle(String wqTitle) {
         log.info("Searching for quiz with title: {}", wqTitle);
-        List<Wqinfo> result = wqinfoRepository.findByWqTitle(wqTitle);
-        log.info("Found {} questions for quiz title: {}", result.size(), wqTitle);
-        return result;
+        List<Wqinfo> quizQuestions = wqinfoRepository.findByWqTitle(wqTitle);
+        log.info("Found {} questions for quiz title: {}", quizQuestions.size(), wqTitle);
+        return quizQuestions.stream()
+                .map(this::createEnhancedDto)
+                .collect(Collectors.toList());
+    }
+
+    // 사용자 점수 반환
+    public Map<String, Long> getUserQuizStats(String userId) {
+        log.info("Calculating quiz stats for user: {}", userId);
+
+        long totalQuestions = wqresultRepository.countByUserUid(userId);
+        long correctAnswers = wqresultRepository.countByUserUidAndWqCheckTrue(userId);
+
+        Map<String, Long> stats = new HashMap<>();
+        stats.put("totalQuestions", totalQuestions);
+        stats.put("correctAnswers", correctAnswers);
+
+        log.info("User {} stats: total questions - {}, correct answers - {}",
+                userId, totalQuestions, correctAnswers);
+
+        return stats;
     }
 }
