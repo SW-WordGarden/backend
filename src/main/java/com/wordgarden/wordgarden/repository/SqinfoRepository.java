@@ -10,7 +10,7 @@ import java.util.List;
 import java.util.Optional;
 
 @Repository
-public interface SqinfoRepository extends JpaRepository<Sqinfo, Long> {
+public interface SqinfoRepository extends JpaRepository<Sqinfo, String> {
     @Query("SELECT s.sqTitle FROM Sqinfo s WHERE s.user.uid = :uid ORDER BY s.sqTitle ASC")
     List<String> findTitlesByUserUid(@Param("uid") String uid);
 
@@ -18,4 +18,7 @@ public interface SqinfoRepository extends JpaRepository<Sqinfo, Long> {
     boolean existsByUserAndSqTitle(User user, String sqTitle);
 
     Optional<Sqinfo> findBySqTitle(String sqTitle);
+
+    List<Sqinfo> findByUser(User user);
+    Optional<Sqinfo> findByUserAndSqId(User user, String sqId);
 }

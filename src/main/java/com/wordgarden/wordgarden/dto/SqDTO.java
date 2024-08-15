@@ -10,6 +10,7 @@ import java.util.List;
 public class SqDTO {
     private String uid;
     private String quizTitle;
+    private String sqId;  // 새로 추가
     private List<QuestionAnswerDTO> questionsAndAnswers;
     private List<SqresultDTO> sqresults;
 }
