@@ -33,6 +33,7 @@ public class MypageService {
         userInfo.put("point", user.getUPoint());
         userInfo.put("rank", calculateUserRank(user));
         userInfo.put("randomFriends", randomFriends);
+        userInfo.put("name", user.getUName());
 
         return userInfo;
     }
