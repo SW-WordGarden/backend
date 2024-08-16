@@ -45,4 +45,26 @@ public class GardenController {
             return ResponseEntity.badRequest().body("코인이 부족하여 물뿌리개를 구매할 수 없습니다");
         }
     }
+
+    // 코인 증가 (테스트용)
+    @PostMapping("/{userId}/coin")
+    public ResponseEntity<String> increaseCoins(@PathVariable String userId, @RequestParam int amount) {
+        try {
+            gardenService.increaseCoins(userId, amount);
+            return ResponseEntity.ok("코인이 성공적으로 증가되었습니다.");
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
+
+    // 나무 성장
+    @PostMapping("/{userId}/watertree")
+    public ResponseEntity<String> useWateringCan(@PathVariable String userId) {
+        boolean success = gardenService.useWateringCan(userId);
+        if (success) {
+            return ResponseEntity.ok("물뿌리개를 사용하여 나무의 성장도가 25 증가했습니다.");
+        } else {
+            return ResponseEntity.badRequest().body("물뿌리개를 사용할 수 없습니다. 물뿌리개가 부족합니다.");
+        }
+    }
 }

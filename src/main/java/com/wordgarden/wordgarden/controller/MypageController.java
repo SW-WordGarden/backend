@@ -21,16 +21,24 @@ public class MypageController {
         return ResponseEntity.ok(mypageService.getUserInfo(uid));
     }
 
-    @PutMapping("/image/{uid}")
-    public ResponseEntity<?> updateUserImage(@PathVariable String uid, @RequestParam("image") MultipartFile image) {
-        mypageService.updateUserImage(uid, image);
-        return ResponseEntity.ok().build();
+    @PatchMapping("/image/{uid}")
+    public ResponseEntity<?> updateUserImage(@PathVariable String uid, @RequestPart("image") MultipartFile image) {
+        try {
+            mypageService.updateUserImage(uid, image);
+            return ResponseEntity.ok("Profile changed");
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
     }
 
-    @PutMapping("/nickname/{uid}")
-    public ResponseEntity<?> updateUserNickname(@PathVariable String uid, @RequestParam("nickname") String nickname) {
+    @PatchMapping("/nickname/{uid}")
+    public ResponseEntity<?> updateUserNickname(@PathVariable String uid, @RequestBody Map<String, String> payload) {
+        String nickname = payload.get("nickname");
+        if (nickname == null || nickname.isEmpty()) {
+            return ResponseEntity.badRequest().body("Nickname didn't change");
+        }
         mypageService.updateUserNickname(uid, nickname);
-        return ResponseEntity.ok().build();
+        return ResponseEntity.ok("nickname changed");
     }
 
     @GetMapping("/friends/{uid}")
@@ -38,9 +46,16 @@ public class MypageController {
         return ResponseEntity.ok(mypageService.getFriendList(uid));
     }
 
-    @PostMapping("/report")
+    @PatchMapping("/report")
     public ResponseEntity<?> reportFriend(@RequestBody Map<String, String> reportInfo) {
-        mypageService.reportFriend(reportInfo.get("reporterId"), reportInfo.get("reportedId"));
-        return ResponseEntity.ok().build();
+        String reporterId = reportInfo.get("reporterId");
+        String reportedId = reportInfo.get("reportedId");
+
+        if (reporterId == null || reportedId == null) {
+            return ResponseEntity.badRequest().body("Reporter ID and reported ID are required");
+        }
+
+        mypageService.reportFriend(reporterId, reportedId);
+        return ResponseEntity.ok("Friend reported successfully");
     }
 }

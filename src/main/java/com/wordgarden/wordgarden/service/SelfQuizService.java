@@ -10,6 +10,8 @@ import com.wordgarden.wordgarden.repository.SqinfoRepository;
 import com.wordgarden.wordgarden.repository.SqresultRepository;
 import com.wordgarden.wordgarden.repository.UserRepository;
 import jakarta.transaction.Transactional;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -24,17 +26,18 @@ import java.util.HashMap;
 @Service
 public class SelfQuizService {
 
+    private static final Logger log = LoggerFactory.getLogger(SelfQuizService.class);
+
     @Autowired
     private SqinfoRepository sqinfoRepository;
-
     @Autowired
     private SqRepository sqRepository;
-
     @Autowired
     private UserRepository userRepository;
-
     @Autowired
     private SqresultRepository sqresultRepository;
+    @Autowired
+    private GardenService gardenService;
 
     // 문제 생성
     @Transactional
@@ -122,21 +125,46 @@ public class SelfQuizService {
         Sqinfo sqinfo = sqinfoRepository.findBySqTitle(solveQuizDTO.getQuizTitle())
                 .orElseThrow(() -> new RuntimeException("Quiz not found"));
 
+        int correctAnswers = 0;
+
         for (AnswerDTO answerDTO : solveQuizDTO.getAnswers()) {
-            Sq sq = sqRepository.findById(answerDTO.getQuestionId())
-                    .orElseThrow(() -> new RuntimeException("Question not found"));
+            try {
+                Sq sq = sqRepository.findById(answerDTO.getQuestionId())
+                        .orElseThrow(() -> new RuntimeException("Question not found"));
 
-            Sqresult sqresult = new Sqresult();
-            sqresult.setUser(user);
-            sqresult.setSqinfo(sqinfo);
-            sqresult.setUSqA(answerDTO.getUserAnswer());
-            sqresult.setSqQnum(sq.getSqQnum());
-            sqresult.setTime(new Timestamp(System.currentTimeMillis()));
+                Sqresult sqresult = new Sqresult();
+                sqresult.setUser(user);
+                sqresult.setSqinfo(sqinfo);
+                sqresult.setUSqA(answerDTO.getUserAnswer());
+                sqresult.setSqQnum(sq.getSqQnum());
+                sqresult.setTime(new Timestamp(System.currentTimeMillis()));
 
-            // 정답 체크
-            sqresult.setSqCheck(sq.getSqAnswer().equalsIgnoreCase(answerDTO.getUserAnswer()));
+                // 정답 체크
+                boolean isCorrect = sq.getSqAnswer().equalsIgnoreCase(answerDTO.getUserAnswer());
+                sqresult.setSqCheck(isCorrect);
 
-            sqresultRepository.save(sqresult);
+                if (isCorrect) {
+                    correctAnswers++;
+                }
+
+                sqresultRepository.save(sqresult);
+            } catch (Exception e) {
+                log.error("답변 처리 중 오류 발생: {}", answerDTO, e);
+            }
+        }
+
+        // Point와 Coin 증가
+        try {
+            int pointsEarned = correctAnswers * 25;
+            int currentPoints = user.getUPoint() != null ? user.getUPoint() : 0;
+            user.setUPoint(currentPoints + pointsEarned);
+            userRepository.save(user);
+
+            gardenService.increaseCoins(user.getUid(), pointsEarned);
+
+            log.info("사용자 {}의 포인트와 코인이 {} 만큼 증가했습니다.", user.getUid(), pointsEarned);
+        } catch (Exception e) {
+            log.error("포인트 및 코인 증가 중 오류 발생: {}", e.getMessage());
         }
     }
 

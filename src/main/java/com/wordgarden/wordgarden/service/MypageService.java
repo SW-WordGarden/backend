@@ -44,7 +44,8 @@ public class MypageService {
                 .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다"));
 
         try {
-            user.setUImage(Base64.getEncoder().encodeToString(image.getBytes()));
+            String base64Image = Base64.getEncoder().encodeToString(image.getBytes());
+            user.setUImage(base64Image);
             userRepository.save(user);
         } catch (IOException e) {
             throw new RuntimeException("사용자 이미지 업데이트 실패", e);
