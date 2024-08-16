@@ -61,7 +61,7 @@ public class GardenService {
 
         if (garden.getCoin() >= 1000) {
             garden.setCoin(garden.getCoin() - 1000);
-            garden.setWater(garden.getWater() + 1);
+            garden.setWater(garden.getWater() + 10);
             gardenRepository.save(garden);
             return true;
         }
