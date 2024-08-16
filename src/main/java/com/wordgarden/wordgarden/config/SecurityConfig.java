@@ -33,6 +33,8 @@ public class SecurityConfig {
                 .requestMatchers("/like/**").permitAll()
                 .requestMatchers("/sq/**").permitAll()
                 .requestMatchers("/wq/**").permitAll()
+                .requestMatchers("/user/**").permitAll()
+                .requestMatchers("/garden/**").permitAll()
                 .anyRequest().authenticated()
             )
             .addFilterBefore(customAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
