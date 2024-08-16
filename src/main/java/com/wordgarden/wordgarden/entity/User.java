@@ -28,8 +28,8 @@ public class User {
     @Column(name = "u_image", columnDefinition = "LONGTEXT")    //썸네일
     private String uImage;
 
-//    @Column(name = "u_url", length = 500)
-//    private String uUrl;
+    @Column(name = "u_url", length = 500)
+    private String uUrl;
 
     @Column(name = "u_provider")
     private String uProvider;   // 소셜로그인 플랫폼

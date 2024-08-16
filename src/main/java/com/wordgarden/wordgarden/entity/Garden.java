@@ -10,7 +10,8 @@ import lombok.Setter;
 @Table(name = "garden_tb")
 public class Garden {
     @Id
-    @Column(name = "garden_id", length = 255)
+    @GeneratedValue(strategy = GenerationType.UUID)
+    @Column(name = "garden_id", length = 36)
     private String gardenId;
 
     @Column(name = "tree", length = 255)

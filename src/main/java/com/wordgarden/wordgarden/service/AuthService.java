@@ -1,6 +1,10 @@
 package com.wordgarden.wordgarden.service;
 
+import com.wordgarden.wordgarden.entity.Garden;
+import com.wordgarden.wordgarden.entity.GardenBook;
 import com.wordgarden.wordgarden.entity.User;
+import com.wordgarden.wordgarden.repository.GardenBookRepository;
+import com.wordgarden.wordgarden.repository.GardenRepository;
 import com.wordgarden.wordgarden.repository.UserRepository;
 import com.wordgarden.wordgarden.security.JwtTokenProvider;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -12,16 +16,47 @@ import com.wordgarden.wordgarden.dto.UserDto;
 public class AuthService {
     @Autowired
     private UserRepository userRepository;
+    @Autowired
+    private GardenRepository gardenRepository;
+    @Autowired
+    private GardenBookRepository gardenBookRepository;
 
+    @Transactional
     public User saveOrUpdateUser(String uid, String nickname, String provider) {
         User user = getUserEntityByUid(uid);
+        boolean isNewUser = false;
         if (user == null) {
             user = new User();
             user.setUid(uid);
+            isNewUser = true;
         }
         user.setUName(nickname);
         user.setUProvider(provider);
-        return userRepository.save(user);
+        user = userRepository.save(user);
+
+        if (isNewUser) {
+            createGardenForUser(user);
+        }
+
+        return user;
+    }
+
+    @Transactional
+    private void createGardenForUser(User user) {
+        Garden garden = new Garden();
+        garden.setUser(user);
+        garden.setWater(0);  // 초기 물뿌리개 개수
+        garden.setCoin(0);   // 초기 코인 개수
+        garden.setTreeGrow(0);  // 초기 나무 성장도
+        garden.setTreeName("Apple Tree");  // 초기 나무 종류
+        garden = gardenRepository.save(garden);
+
+        // 초기 GardenBook 엔트리 생성
+        GardenBook initialPlant = new GardenBook();
+        initialPlant.setGarden(garden);
+        initialPlant.setTreeName("Apple Tree");
+        initialPlant.setTreeResult("stage1");  // 초기 단계
+        gardenBookRepository.save(initialPlant);
     }
 
     @Transactional(readOnly = true)
