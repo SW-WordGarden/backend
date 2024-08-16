@@ -101,4 +101,33 @@ public class GardenService {
         }
     }
 
+    // 포인트 증가
+    @Transactional
+    public void increaseCoins(String userId, int amount) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다"));
+        Garden garden = gardenRepository.findByUser(user)
+                .orElseThrow(() -> new RuntimeException("정원을 찾을 수 없습니다"));
+
+        garden.setCoin(garden.getCoin() + amount);
+        gardenRepository.save(garden);
+    }
+
+    // 나무 성장
+    @Transactional
+    public boolean useWateringCan(String userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다"));
+        Garden garden = gardenRepository.findByUser(user)
+                .orElseThrow(() -> new RuntimeException("정원을 찾을 수 없습니다"));
+
+        if (garden.getWater() > 0) {
+            garden.setWater(garden.getWater() - 1);
+            garden.setTreeGrow(garden.getTreeGrow() + 25);
+            gardenRepository.save(garden);
+            return true;
+        }
+        return false;
+    }
+
 }

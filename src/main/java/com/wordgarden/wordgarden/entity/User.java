@@ -20,7 +20,7 @@ public class User {
     private Integer uRank;
 
     @Column(name = "u_point")   // 포인트
-    private Integer uPoint;
+    private Integer uPoint = 0;
 
     @Column(name = "u_name")    // 닉네임
     private String uName;
