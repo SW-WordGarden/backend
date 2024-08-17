@@ -6,6 +6,7 @@ import com.wordgarden.wordgarden.repository.FriendRepository;
 import com.wordgarden.wordgarden.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
@@ -105,5 +106,14 @@ public class MypageService {
         List<User> allUsers = userRepository.findAll();
         allUsers.sort((u1, u2) -> u2.getUPoint().compareTo(u1.getUPoint()));
         return allUsers.indexOf(user) + 1;
+    }
+
+    // 잠금화면 퀴즈 설정
+    @Transactional
+    public void updateLockScreenQuizSetting(String uid, boolean enabled) {
+        User user = userRepository.findById(uid)
+                .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다: " + uid));
+        user.setULockquiz(enabled);
+        userRepository.save(user);
     }
 }
