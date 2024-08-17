@@ -31,6 +31,9 @@ public class User {
     @Column(name = "u_url", length = 500)
     private String uUrl;
 
+    @Column(name = "fcm_token")
+    private String fcmToken;
+
     @Column(name = "u_provider")
     private String uProvider;   // 소셜로그인 플랫폼
 
@@ -47,4 +50,5 @@ public class User {
 
     @OneToMany(mappedBy = "user")
     private List<Like> likes;
+
 }

@@ -35,6 +35,8 @@ public class SecurityConfig {
                 .requestMatchers("/wq/**").permitAll()
                 .requestMatchers("/user/**").permitAll()
                 .requestMatchers("/garden/**").permitAll()
+                .requestMatchers("/onequiz/**").permitAll()
+                .requestMatchers("/share/**").permitAll()
                 .anyRequest().authenticated()
             )
             .addFilterBefore(customAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
