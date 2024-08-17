@@ -13,26 +13,23 @@ import java.time.LocalDateTime;
 public class Alarm {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "alarm_id")
+    @Column(name = "alarm_id")  // 알람 고유 아이디
     private Long alarmId;
 
-    @Column(name = "alarm_time")
-    private LocalDateTime alarmTime;
-
-    @Column(name = "content", length = 2000)
+    @Column(name = "content", length = 2000) // wq_title이나 sq_id가 들어감
     private String content;
 
-    @Column(name = "is_read")
+    @Column(name = "is_read")   // 알람 확인 여부
     private Boolean isRead;
 
-    @Column(name = "create_time")
+    @Column(name = "create_time")   // 알람 생성 시간
     private LocalDateTime createTime;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.LAZY)  //공유한 사용자의 아이디
     @JoinColumn(name = "from_id")
     private User fromUser;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.LAZY)  // 받는 사용자의 아이디
     @JoinColumn(name = "to_id")
     private User toUser;
 }
