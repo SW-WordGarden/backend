@@ -251,4 +251,19 @@ public class SelfQuizService {
         return sqDTO;
     }
 
+    // 퀴즈 생성자 정보
+    public SqCreatorInfoDto getQuizCreatorInfo(String sqId) {
+        Sqinfo sqinfo = sqinfoRepository.findById(sqId)
+                .orElseThrow(() -> new RuntimeException("Quiz not found"));
+
+        User creator = sqinfo.getUser();
+
+        SqCreatorInfoDto infoDTO = new SqCreatorInfoDto();
+        infoDTO.setThumbnail(creator.getUImage());
+        infoDTO.setNickname(creator.getUName());
+        infoDTO.setQuizTitle(sqinfo.getSqTitle());
+
+        return infoDTO;
+    }
+
 }

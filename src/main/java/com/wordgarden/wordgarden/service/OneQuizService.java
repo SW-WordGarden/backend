@@ -33,7 +33,15 @@ public class OneQuizService {
     private UserRepository userRepository;
 
     @Transactional
-    public WqResponseDto generateQuiz(String tableType) {
+    public WqResponseDto generateQuiz(String tableType, String uid) {
+
+        User user = userRepository.findById(uid)
+                .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다: " + uid));
+
+        if (!user.getULockquiz()) {
+            throw new RuntimeException("잠금화면 퀴즈가 비활성화되어 있습니다.");
+        }
+
         List<? extends Object> words = getWords(tableType);
         logger.info("{} 단어 수: {}", tableType, words.size());
 
@@ -104,10 +112,13 @@ public class OneQuizService {
         return randomWord;
     }
 
+
     @Transactional
-    public void saveQuizResult(String userId, String wqId, String userAnswer) {
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다: " + userId));
+    public void saveQuizResult(String uid, String wqId, String userAnswer) {
+        logger.info("퀴즈 결과 저장 시작. 사용자: {}, 퀴즈: {}, 답변: {}", uid, wqId, userAnswer);
+
+        User user = userRepository.findById(uid)
+                .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다: " + uid));
         Wqinfo wqinfo = wqinfoRepository.findById(wqId)
                 .orElseThrow(() -> new RuntimeException("문제를 찾을 수 없습니다: " + wqId));
 
@@ -118,16 +129,18 @@ public class OneQuizService {
         result.setWqCheck(wqinfo.getWqAnswer().equalsIgnoreCase(userAnswer));
         result.setTime(new java.sql.Timestamp(System.currentTimeMillis()));
 
-        wqresultRepository.save(result);
+        Wqresult savedResult = wqresultRepository.save(result);
+        logger.info("Wqresult 저장 완료. ID: {}", savedResult.getWqResultId());
 
         if (!result.getWqCheck()) {
             Wqwrong wrong = new Wqwrong();
             wrong.setUser(user);
             wrong.setWqInfo(wqinfo);
             wrong.setWord(wqinfo.getWord());
-            wqwrongRepository.save(wrong);
+            Wqwrong savedWrong = wqwrongRepository.save(wrong);
+            logger.info("Wqwrong 저장 완료. ID: {}", savedWrong.getWqwId());
         }
 
-        logger.info("퀴즈 결과 저장 완료. 사용자: {}, 퀴즈: {}, 정답 여부: {}", userId, wqId, result.getWqCheck());
+        logger.info("퀴즈 결과 저장 완료. 사용자: {}, 퀴즈: {}, 정답 여부: {}", uid, wqId, result.getWqCheck());
     }
 }

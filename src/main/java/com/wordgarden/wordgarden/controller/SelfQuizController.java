@@ -2,6 +2,7 @@ package com.wordgarden.wordgarden.controller;
 
 import com.wordgarden.wordgarden.dto.QuestionDTO;
 import com.wordgarden.wordgarden.dto.SolveQuizDTO;
+import com.wordgarden.wordgarden.dto.SqCreatorInfoDto;
 import com.wordgarden.wordgarden.dto.SqDTO;
 import com.wordgarden.wordgarden.service.SelfQuizService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -97,6 +98,18 @@ public class SelfQuizController {
             return ResponseEntity.ok(quiz);
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Failed to retrieve solved quiz: " + e.getMessage());
+        }
+    }
+
+    // 커스텀 퀴즈 생성자 반환
+    @GetMapping("/creator/{sqId}")
+    public ResponseEntity<SqCreatorInfoDto> getQuizCreatorInfo(@PathVariable String sqId) {
+        try {
+            SqCreatorInfoDto creatorInfo = selfQuizService.getQuizCreatorInfo(sqId);
+            return ResponseEntity.ok(creatorInfo);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(null);
         }
     }
 
