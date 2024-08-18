@@ -73,8 +73,8 @@ public class MypageController {
     public ResponseEntity<?> updateLockScreenQuizSetting(@PathVariable String uid, @RequestParam boolean enabled) {
         logger.info("Received request to update lock screen quiz setting. UID: {}, Enabled: {}", uid, enabled);
         try {
-            // 기존 코드
-            logger.info("Successfully updated lock screen quiz setting for UID: {}", uid);
+            mypageService.updateLockScreenQuizSetting(uid, enabled);
+            logger.info("Service method called successfully for UID: {}", uid);
             return ResponseEntity.ok("잠금화면 퀴즈 설정이 업데이트되었습니다.");
         } catch (Exception e) {
             logger.error("Failed to update lock screen quiz setting for UID: {}. Error: {}", uid, e.getMessage(), e);

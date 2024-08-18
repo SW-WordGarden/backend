@@ -2,6 +2,9 @@ package com.wordgarden.wordgarden.service;
 
 import com.wordgarden.wordgarden.entity.*;
 import com.wordgarden.wordgarden.repository.*;
+import jakarta.persistence.EntityManager;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -14,6 +17,11 @@ import java.util.stream.Collectors;
 
 @Service
 public class MypageService {
+
+    private static final Logger logger = LoggerFactory.getLogger(MypageService.class);
+
+    @Autowired
+    private EntityManager entityManager;
 
     @Autowired
     private UserRepository userRepository;
@@ -168,9 +176,22 @@ public class MypageService {
     // 잠금화면 퀴즈 설정
     @Transactional
     public void updateLockScreenQuizSetting(String uid, boolean enabled) {
+        logger.info("Updating lock screen quiz setting for user: {}, enabled: {}", uid, enabled);
         User user = userRepository.findById(uid)
                 .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다: " + uid));
+
+        logger.info("Current lock screen quiz setting for user {}: {}", uid, user.getULockquiz());
+
         user.setULockquiz(enabled);
-        userRepository.save(user);
+        user = userRepository.save(user);
+
+        logger.info("After save, lock screen quiz setting for user {}: {}", uid, user.getULockquiz());
+
+        entityManager.flush(); // 명시적으로 변경사항을 데이터베이스에 반영
+        entityManager.clear(); // 영속성 컨텍스트를 클리어
+
+        // 변경 후 즉시 다시 조회하여 확인
+        User updatedUser = userRepository.findById(uid).orElseThrow();
+        logger.info("After flush and clear, verified lock screen quiz setting for user {}: {}", uid, updatedUser.getULockquiz());
     }
 }
