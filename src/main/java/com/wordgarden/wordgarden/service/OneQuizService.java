@@ -1,5 +1,6 @@
 package com.wordgarden.wordgarden.service;
 
+import com.wordgarden.wordgarden.dto.OneQuizCorrectDto;
 import com.wordgarden.wordgarden.dto.WqResponseDto;
 import com.wordgarden.wordgarden.entity.*;
 import com.wordgarden.wordgarden.repository.*;
@@ -16,22 +17,18 @@ public class OneQuizService {
 
     @Autowired
     private WeeklyRepository weeklyRepository;
-
     @Autowired
     private LearningRepository learningRepository;
-
     @Autowired
     private WqinfoRepository wqinfoRepository;
-
     @Autowired
     private WqresultRepository wqresultRepository;
-
     @Autowired
     private WqwrongRepository wqwrongRepository;
-
     @Autowired
     private UserRepository userRepository;
 
+    // 잠금화면 퀴즈 생성
     @Transactional
     public WqResponseDto generateQuiz(String tableType, String uid) {
 
@@ -85,6 +82,7 @@ public class OneQuizService {
         return response;
     }
 
+    // 단어 랜덤 선택
     private List<? extends Object> getWords(String tableType) {
         if ("weekly".equalsIgnoreCase(tableType)) {
             return weeklyRepository.findAll();
@@ -93,7 +91,6 @@ public class OneQuizService {
         }
         throw new IllegalArgumentException("Invalid table type: " + tableType);
     }
-
     private Word getRandomWord(List<? extends Object> words) {
         Object randomWord = words.get(new Random().nextInt(words.size()));
         if (randomWord instanceof Weekly) {
@@ -103,7 +100,6 @@ public class OneQuizService {
         }
         throw new IllegalStateException("Unexpected word type");
     }
-
     private Word getRandomWordExcept(List<? extends Object> words, Word exceptWord) {
         Word randomWord;
         do {
@@ -113,6 +109,7 @@ public class OneQuizService {
     }
 
 
+    // 퀴즈 결과 저장
     @Transactional
     public void saveQuizResult(String uid, String wqId, String userAnswer) {
         logger.info("퀴즈 결과 저장 시작. 사용자: {}, 퀴즈: {}, 답변: {}", uid, wqId, userAnswer);
@@ -142,5 +139,28 @@ public class OneQuizService {
         }
 
         logger.info("퀴즈 결과 저장 완료. 사용자: {}, 퀴즈: {}, 정답 여부: {}", uid, wqId, result.getWqCheck());
+    }
+
+    // 퀴즈 결과 반환
+    public OneQuizCorrectDto getQuizAnswer(String uid) {
+        User user = userRepository.findByUid(uid)
+                .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다: " + uid));
+
+        Wqresult latestResult = wqresultRepository.findTopByUserOrderByTimeDesc(user)
+                .orElseThrow(() -> new RuntimeException("최근 퀴즈 결과를 찾을 수 없습니다."));
+
+        Wqinfo wqinfo = latestResult.getWqInfo();
+        Word word = wqinfo.getWord();
+
+        OneQuizCorrectDto correctdto = new OneQuizCorrectDto();
+        correctdto.setWqId(wqinfo.getWqId());
+        correctdto.setWordId(word.getWordId());
+        correctdto.setWord(word.getWord());
+        correctdto.setWordInfo(word.getWordInfo());
+        correctdto.setCorrectAnswer(wqinfo.getWqAnswer());
+        correctdto.setUserAnswer(latestResult.getUWqA());
+        correctdto.setIsCorrect(latestResult.getWqCheck());
+
+        return correctdto;
     }
 }

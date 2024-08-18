@@ -1,4 +1,5 @@
 package com.wordgarden.wordgarden.controller;
+import com.wordgarden.wordgarden.dto.OneQuizCorrectDto;
 import com.wordgarden.wordgarden.dto.OneQuizResultDto;
 import com.wordgarden.wordgarden.dto.WqResponseDto;
 import com.wordgarden.wordgarden.service.OneQuizService;
@@ -40,6 +41,18 @@ public class OneQuizController {
         } catch (Exception e) {
             logger.error("퀴즈 결과 저장 중 오류 발생", e);
             return ResponseEntity.badRequest().body("퀴즈 결과 저장에 실패했습니다: " + e.getMessage());
+        }
+    }
+
+    // 최근 퀴즈 정답 조회
+    @GetMapping("/correct")
+    public ResponseEntity<?> getLatestQuizAnswer(@RequestParam String uid) {
+        try {
+            OneQuizCorrectDto answer = oneQuizService.getQuizAnswer(uid);
+            return ResponseEntity.ok(answer);
+        } catch (Exception e) {
+            logger.error("최근 퀴즈 정답 조회 중 오류 발생", e);
+            return ResponseEntity.badRequest().body(e.getMessage());
         }
     }
 }
