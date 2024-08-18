@@ -1,15 +1,14 @@
 package com.wordgarden.wordgarden.service;
 
-import com.wordgarden.wordgarden.entity.Friend;
-import com.wordgarden.wordgarden.entity.User;
-import com.wordgarden.wordgarden.repository.FriendRepository;
-import com.wordgarden.wordgarden.repository.UserRepository;
+import com.wordgarden.wordgarden.entity.*;
+import com.wordgarden.wordgarden.repository.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -18,26 +17,84 @@ public class MypageService {
 
     @Autowired
     private UserRepository userRepository;
-
     @Autowired
     private FriendRepository friendRepository;
+    @Autowired
+    private WqresultRepository wqresultRepository;
+    @Autowired
+    private SqinfoRepository sqinfoRepository;
+    @Autowired
+    private SqresultRepository sqresultRepository;
 
-    // 프로필 사용자 정보 가져오기
+    // 마이페이지에서 보여지는 모든 사용자 정보
     public Map<String, Object> getUserInfo(String uid) {
         User user = userRepository.findByUid(uid)
                 .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다"));
-
-        List<String> randomFriends = getRandomFriends(user, 5);
 
         Map<String, Object> userInfo = new HashMap<>();
         userInfo.put("profileImage", user.getUImage());
         userInfo.put("point", user.getUPoint());
         userInfo.put("rank", calculateUserRank(user));
-        userInfo.put("randomFriends", randomFriends);
+        userInfo.put("randomFriends", getRandomFriends(user, 5));
         userInfo.put("name", user.getUName());
+
+        // 7일간의 퀴즈 결과 통계
+        LocalDateTime sevenDaysAgo = LocalDateTime.now().minusDays(7);
+        List<Wqresult> recentResults = wqresultRepository.findByUserAndTimeAfter(user, sevenDaysAgo);
+        userInfo.put("all", recentResults.size());
+        userInfo.put("right", recentResults.stream().filter(Wqresult::getWqCheck).count());
+
+        // 가장 최근에 만든 커스텀 문제
+        sqinfoRepository.findTopByUserOrderByCreatedAtDesc(user).ifPresent(latestCustomQuiz -> {
+            Map<String, String> latestQuizInfo = new HashMap<>();
+            latestQuizInfo.put("sqTitle", latestCustomQuiz.getSqTitle());
+            latestQuizInfo.put("sqId", latestCustomQuiz.getSqId());
+            userInfo.put("latestCustomQuiz", latestQuizInfo);
+        });
+
+        // 가장 최근에 푼 퀴즈
+        Map<String, Object> latestSolvedQuiz = getLatestSolvedQuiz(user);
+        if (latestSolvedQuiz != null) {
+            userInfo.put("latestSolvedQuiz", latestSolvedQuiz);
+        }
 
         return userInfo;
     }
+
+    private Map<String, Object> getLatestSolvedQuiz(User user) {
+        Optional<Wqresult> latestWq = wqresultRepository.findTopByUserOrderByTimeDesc(user);
+        Optional<Sqresult> latestSq = sqresultRepository.findTopByUserOrderByTimeDesc(user);
+
+        if (latestWq.isPresent() && latestSq.isPresent()) {
+            if (latestWq.get().getTime().after(latestSq.get().getTime())) {
+                return createWqQuizInfo(latestWq.get());
+            } else {
+                return createSqQuizInfo(latestSq.get());
+            }
+        } else if (latestWq.isPresent()) {
+            return createWqQuizInfo(latestWq.get());
+        } else if (latestSq.isPresent()) {
+            return createSqQuizInfo(latestSq.get());
+        }
+
+        return null;
+    }
+
+    private Map<String, Object> createWqQuizInfo(Wqresult wqresult) {
+        Map<String, Object> quizInfo = new HashMap<>();
+        quizInfo.put("type", "wq");
+        quizInfo.put("title", wqresult.getWqInfo().getWqTitle());
+        return quizInfo;
+    }
+
+    private Map<String, Object> createSqQuizInfo(Sqresult sqresult) {
+        Map<String, Object> quizInfo = new HashMap<>();
+        quizInfo.put("type", "sq");
+        quizInfo.put("title", sqresult.getSqinfo().getSqTitle());
+        quizInfo.put("sqId", sqresult.getSqinfo().getSqId());
+        return quizInfo;
+    }
+
 
     // 사용자 프로필 이미지 업데아트
     public void updateUserImage(String uid, MultipartFile image) {
