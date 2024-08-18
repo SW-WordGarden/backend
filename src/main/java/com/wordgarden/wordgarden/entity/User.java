@@ -20,7 +20,7 @@ public class User {
     private Integer uRank;
 
     @Column(name = "u_point")   // 포인트
-    private Integer uPoint;
+    private Integer uPoint = 0;
 
     @Column(name = "u_name")    // 닉네임
     private String uName;
@@ -28,11 +28,20 @@ public class User {
     @Column(name = "u_image", columnDefinition = "LONGTEXT")    //썸네일
     private String uImage;
 
-//    @Column(name = "u_url", length = 500)
-//    private String uUrl;
+    @Column(name = "u_url", length = 500)
+    private String uUrl;
+
+    @Column(name = "fcm_token")
+    private String fcmToken;
 
     @Column(name = "u_provider")
     private String uProvider;   // 소셜로그인 플랫폼
+
+//    @Column(name = "lock_screen_quiz_enabled")
+//    private Boolean lockScreenQuizEnabled = false; // 잠금화면 퀴즈 설정 여부
+
+    @Column(name = "u_lockquiz")
+    private Boolean uLockquiz = false;
 
     @JsonIgnore
     // 또는 @JsonManagedReference
@@ -47,4 +56,5 @@ public class User {
 
     @OneToMany(mappedBy = "user")
     private List<Like> likes;
+
 }

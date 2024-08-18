@@ -22,4 +22,7 @@ public interface WordRepository extends JpaRepository<Word, String> {
     Word findByWordId(@Param("wordId") String wordId);
 
     Optional<Word> findById(String wordId);
+
+    @Query(value = "SELECT * FROM word_tb WHERE category = :category ORDER BY RAND() LIMIT :limit", nativeQuery = true)
+    List<Word> findRandomWordsByCategory(@Param("category") String category, @Param("limit") int limit);
 }

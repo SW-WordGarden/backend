@@ -30,11 +30,13 @@ public class WqService {
     private WqwrongRepository wqwrongRepository;
     @Autowired
     private UserRepository userRepository;
+    @Autowired
+    private GardenService gardenService;
 
     @Transactional
     public List<WqResponseDto> generateAndSaveNewQuiz() {
         List<Wqinfo> newQuiz = new ArrayList<>();
-        String quizTitle = "앱 퀴즈 #" + LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyMMddHHmmss"));
+        String quizTitle = "앱 퀴즈_" + LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyMMddHHmmss"));
 
         List<Word> allWords = wordRepository.findAll();
         Collections.shuffle(allWords);
@@ -103,12 +105,12 @@ public class WqService {
     }
 
     private void generateWriteInQuestion(Wqinfo question) {
-        question.setWqQuestion("다음 단어의 뜻을 정확하게 작성하세요.\n" + question.getWord().getWord());
-        question.setWqAnswer(question.getWord().getWordInfo());
+        question.setWqQuestion("다음 뜻에 해당하는 단어를 작성하세요.\n" + question.getWord().getWordInfo());
+        question.setWqAnswer(question.getWord().getWord());
     }
 
     private void generateOXQuestion(Wqinfo question, List<Word> allWords) {
-        question.setWqQuestion("다음 중 뜻이 적절하다면 O아니라면 X를 선택하세요.");
+        question.setWqQuestion("다음 단어와 뜻이 올바르게 연결되었다면 O, 아니라면 X를 선택하세요.");
         boolean isCorrect = new Random().nextBoolean();
 
         if (isCorrect) {
@@ -163,30 +165,44 @@ public class WqService {
 
     @Transactional
     public void saveResults(WqSubmissionDto submission) {
-        log.info("Processing submission for user: {}", submission.getUid());
-
         User user = userRepository.findById(submission.getUid())
-                .orElseThrow(() -> new RuntimeException("User not found: " + submission.getUid()));
+                .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다: " + submission.getUid()));
 
         List<Wqresult> results = new ArrayList<>();
         List<Wqwrong> wrongs = new ArrayList<>();
+        int correctAnswers = 0;
 
         for (WqAnswerDto answer : submission.getAnswers()) {
             try {
-                processAnswer(user, answer, results, wrongs);
+                boolean isCorrect = processAnswer(user, answer, results, wrongs);
+                if (isCorrect) {
+                    correctAnswers++;
+                }
             } catch (Exception e) {
-                log.error("Error processing answer: {}", answer, e);
+                log.error("답변 처리 중 오류 발생: {}", answer, e);
             }
+        }
+
+        // 포인트와 코인 증가
+        int pointsEarned = correctAnswers * 25;
+        int currentPoints = user.getUPoint() != null ? user.getUPoint() : 0;
+        user.setUPoint(currentPoints + pointsEarned);
+        userRepository.save(user);
+
+        try {
+            gardenService.increaseCoins(user.getUid(), pointsEarned);
+        } catch (Exception e) {
+            log.error("코인 증가 중 오류 발생: {}", e.getMessage());
         }
 
         wqresultRepository.saveAll(results);
         wqwrongRepository.saveAll(wrongs);
-        log.info("Saved {} results and {} wrongs for user: {}", results.size(), wrongs.size(), user.getUid());
+        log.info("사용자 {}의 {} 결과와 {} 오답을 저장했습니다. 획득 포인트: {}", user.getUid(), results.size(), wrongs.size(), pointsEarned);
     }
 
-    private void processAnswer(User user, WqAnswerDto answer, List<Wqresult> results, List<Wqwrong> wrongs) {
+    private boolean processAnswer(User user, WqAnswerDto answer, List<Wqresult> results, List<Wqwrong> wrongs) {
         Wqinfo wqinfo = wqinfoRepository.findById(answer.getWqId())
-                .orElseThrow(() -> new RuntimeException("Question not found: " + answer.getWqId()));
+                .orElseThrow(() -> new RuntimeException("문제를 찾을 수 없습니다: " + answer.getWqId()));
 
         Wqresult result = createWqresult(user, wqinfo, answer.getUWqA());
         results.add(result);
@@ -194,7 +210,10 @@ public class WqService {
         if (!result.getWqCheck()) {
             wrongs.add(createWqwrong(user, wqinfo));
         }
+
+        return result.getWqCheck();
     }
+
 
     private Wqresult createWqresult(User user, Wqinfo wqinfo, String userAnswer) {
         Wqresult result = new Wqresult();
@@ -267,10 +286,30 @@ public class WqService {
         return wqresultRepository.findDistinctWqTitlesByUserId(userId);
     }
 
-    public List<Wqinfo> getQuizByTitle(String wqTitle) {
+    // 타이틀로 큊 가져오기
+    public List<WqResponseDto> getQuizByTitle(String wqTitle) {
         log.info("Searching for quiz with title: {}", wqTitle);
-        List<Wqinfo> result = wqinfoRepository.findByWqTitle(wqTitle);
-        log.info("Found {} questions for quiz title: {}", result.size(), wqTitle);
-        return result;
+        List<Wqinfo> quizQuestions = wqinfoRepository.findByWqTitle(wqTitle);
+        log.info("Found {} questions for quiz title: {}", quizQuestions.size(), wqTitle);
+        return quizQuestions.stream()
+                .map(this::createEnhancedDto)
+                .collect(Collectors.toList());
+    }
+
+    // 사용자 점수 반환
+    public Map<String, Long> getUserQuizStats(String userId) {
+        log.info("Calculating quiz stats for user: {}", userId);
+
+        long totalQuestions = wqresultRepository.countByUserUid(userId);
+        long correctAnswers = wqresultRepository.countByUserUidAndWqCheckTrue(userId);
+
+        Map<String, Long> stats = new HashMap<>();
+        stats.put("totalQuestions", totalQuestions);
+        stats.put("correctAnswers", correctAnswers);
+
+        log.info("User {} stats: total questions - {}, correct answers - {}",
+                userId, totalQuestions, correctAnswers);
+
+        return stats;
     }
 }

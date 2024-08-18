@@ -96,11 +96,12 @@ public class WqController {
         try {
             String decodedTitle = URLDecoder.decode(wqTitle, StandardCharsets.UTF_8.name());
             log.info("Fetching quiz for title: {}", decodedTitle);
-            List<Wqinfo> quizQuestions = wqService.getQuizByTitle(decodedTitle);
+            List<WqResponseDto> quizQuestions = wqService.getQuizByTitle(decodedTitle);
             if (quizQuestions.isEmpty()) {
                 log.warn("No questions found for quiz title: {}", decodedTitle);
                 return ResponseEntity.notFound().build();
             }
+            log.info("Returning {} questions for quiz title: {}", quizQuestions.size(), decodedTitle);
             return ResponseEntity.ok(quizQuestions);
         } catch (Exception e) {
             log.error("Error fetching quiz: ", e);
@@ -109,5 +110,21 @@ public class WqController {
             return ResponseEntity.badRequest().body(response);
         }
     }
+
+    @GetMapping("/stats/{userId}")
+    public ResponseEntity<?> getUserQuizStats(@PathVariable String userId) {
+        try {
+            log.info("Fetching quiz stats for user: {}", userId);
+            Map<String, Long> stats = wqService.getUserQuizStats(userId);
+            return ResponseEntity.ok(stats);
+        } catch (Exception e) {
+            log.error("Error fetching quiz stats for user: {}", userId, e);
+            Map<String, String> response = new HashMap<>();
+            response.put("error", "퀴즈 통계를 불러오는 데 실패했습니다: " + e.getMessage());
+            return ResponseEntity.badRequest().body(response);
+        }
+    }
+
+
 
 }

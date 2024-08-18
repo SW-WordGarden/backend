@@ -11,5 +11,4 @@ import java.util.List;
 public interface SqRepository extends JpaRepository<Sq, Long> {
     List<Sq> findBySqinfoOrderBySqQnumAsc(Sqinfo sqinfo);
     List<Sq> findBySqTitle(String sqTitle);
-
 }

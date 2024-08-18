@@ -36,5 +36,5 @@ out/
 ### VS Code ###
 .vscode/
 
-### 비밀키
-.env
+### 파이어베이스 ###
+./resources/firebase/wordgarden-e47e3-firebase-adminsdk-o53ww-ead41f20f4.json
