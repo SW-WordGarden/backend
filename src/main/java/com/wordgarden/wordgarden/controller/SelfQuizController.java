@@ -69,10 +69,10 @@ public class SelfQuizController {
     }
 
 
-    @PostMapping("/solve")
-    public ResponseEntity<Object> solveQuiz(@RequestBody SolveQuizDTO solveQuizDTO) {
+    @PostMapping("/solve/{sqId}")
+    public ResponseEntity<Object> solveQuiz(@PathVariable String sqId, @RequestBody SolveQuizDTO solveQuizDTO) {
         try {
-            selfQuizService.solveQuiz(solveQuizDTO);
+            selfQuizService.solveQuiz(sqId, solveQuizDTO);
             Map<String, String> response = new HashMap<>();
             response.put("message", "제출에 성공하였습니다");
             return ResponseEntity.ok(response);
@@ -91,10 +91,10 @@ public class SelfQuizController {
         }
     }
 
-    @GetMapping("/solved/{uid}/{title}")
-    public ResponseEntity<Object> getSolvedQuizByUserAndTitle(@PathVariable String uid, @PathVariable String title) {
+    @GetMapping("/solved/{uid}/{sqId}")
+    public ResponseEntity<Object> getSolvedQuizByUserAndSqId(@PathVariable String uid, @PathVariable String sqId) {
         try {
-            SqDTO quiz = selfQuizService.getSolvedQuizByUserAndTitle(uid, title);
+            SqDTO quiz = selfQuizService.getSolvedQuizByUserAndSqId(uid, sqId);
             return ResponseEntity.ok(quiz);
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Failed to retrieve solved quiz: " + e.getMessage());

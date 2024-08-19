@@ -118,11 +118,11 @@ public class SelfQuizService {
 
     // 입력 받은 답 처리
     @Transactional
-    public void solveQuiz(SolveQuizDTO solveQuizDTO) {
+    public void solveQuiz(String sqId, SolveQuizDTO solveQuizDTO) {
         User user = userRepository.findById(solveQuizDTO.getUid())
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
-        Sqinfo sqinfo = sqinfoRepository.findBySqTitle(solveQuizDTO.getQuizTitle())
+        Sqinfo sqinfo = sqinfoRepository.findById(sqId)
                 .orElseThrow(() -> new RuntimeException("Quiz not found"));
 
         int correctAnswers = 0;
@@ -173,16 +173,20 @@ public class SelfQuizService {
         return sqresultRepository.findDistinctSqTitlesByUserUid(uid);
     }
 
-    public SqDTO getSolvedQuizByUserAndTitle(String uid, String title) {
-        List<Sqresult> results = sqresultRepository.findByUser_UidAndSqinfo_SqTitle(uid, title);
+    public SqDTO getSolvedQuizByUserAndSqId(String uid, String sqId) {
+        Sqinfo sqinfo = sqinfoRepository.findById(sqId)
+                .orElseThrow(() -> new RuntimeException("Quiz not found with sqId: " + sqId));
+
+        List<Sqresult> results = sqresultRepository.findByUser_UidAndSqinfo(uid, sqinfo);
 
         if (results.isEmpty()) {
-            throw new RuntimeException("No solved quiz found for user " + uid + " and title " + title);
+            throw new RuntimeException("No solved quiz found for user " + uid + " and sqId " + sqId);
         }
 
         SqDTO sqDTO = new SqDTO();
         sqDTO.setUid(uid);
-        sqDTO.setQuizTitle(title);
+        sqDTO.setQuizTitle(sqinfo.getSqTitle());
+        sqDTO.setSqId(sqId);
         sqDTO.setQuestionsAndAnswers(new ArrayList<>());
         sqDTO.setSqresults(new ArrayList<>());
 
@@ -196,7 +200,7 @@ public class SelfQuizService {
         }
 
         // 원본 문제와 정답 정보 조회
-        List<Sq> questions = sqRepository.findBySqTitle(title);
+        List<Sq> questions = sqRepository.findBySqinfo(sqinfo);
         for (Sq sq : questions) {
             QuestionAnswerDTO qaDTO = new QuestionAnswerDTO();
             qaDTO.setQuestion(sq.getSqQuestion());

@@ -20,5 +20,8 @@ public interface SqinfoRepository extends JpaRepository<Sqinfo, String> {
     Optional<Sqinfo> findBySqTitle(String sqTitle);
 
     List<Sqinfo> findByUser(User user);
+
     Optional<Sqinfo> findByUserAndSqId(User user, String sqId);
+
+    Optional<Sqinfo> findTopByUserOrderByCreatedAtDesc(User user);
 }
