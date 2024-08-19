@@ -41,6 +41,7 @@ dependencies {
 	// MySQL & H2 Database
 	runtimeOnly 'com.mysql:mysql-connector-j:8.0.33'
 	runtimeOnly 'com.h2database:h2'
+	implementation 'org.mariadb.jdbc:mariadb-java-client'
 
 	// Development tools
 	developmentOnly 'org.springframework.boot:spring-boot-devtools'
