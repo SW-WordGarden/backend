@@ -92,11 +92,11 @@ public class WqController {
 
     // 제목으로 모든 문제 반환
     @GetMapping("/{wqTitle}")
-    public ResponseEntity<?> getQuizByTitle(@PathVariable String wqTitle) {
+    public ResponseEntity<?> getQuizByTitle(@PathVariable String wqTitle, @RequestParam String userId) {
         try {
             String decodedTitle = URLDecoder.decode(wqTitle, StandardCharsets.UTF_8.name());
-            log.info("Fetching quiz for title: {}", decodedTitle);
-            List<WqResponseDto> quizQuestions = wqService.getQuizByTitle(decodedTitle);
+            log.info("Fetching quiz for title: {} and user: {}", decodedTitle, userId);
+            List<WqResponseDto> quizQuestions = wqService.getQuizByTitleWithUserAnswers(decodedTitle, userId);
             if (quizQuestions.isEmpty()) {
                 log.warn("No questions found for quiz title: {}", decodedTitle);
                 return ResponseEntity.notFound().build();
