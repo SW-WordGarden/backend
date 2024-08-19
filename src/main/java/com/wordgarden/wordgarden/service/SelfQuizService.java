@@ -118,11 +118,11 @@ public class SelfQuizService {
 
     // 입력 받은 답 처리
     @Transactional
-    public void solveQuiz(SolveQuizDTO solveQuizDTO) {
+    public void solveQuiz(String sqId, SolveQuizDTO solveQuizDTO) {
         User user = userRepository.findById(solveQuizDTO.getUid())
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
-        Sqinfo sqinfo = sqinfoRepository.findBySqTitle(solveQuizDTO.getQuizTitle())
+        Sqinfo sqinfo = sqinfoRepository.findById(sqId)
                 .orElseThrow(() -> new RuntimeException("Quiz not found"));
 
         int correctAnswers = 0;

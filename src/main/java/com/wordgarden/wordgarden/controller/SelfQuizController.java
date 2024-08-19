@@ -69,10 +69,10 @@ public class SelfQuizController {
     }
 
 
-    @PostMapping("/solve")
-    public ResponseEntity<Object> solveQuiz(@RequestBody SolveQuizDTO solveQuizDTO) {
+    @PostMapping("/solve/{sqId}")
+    public ResponseEntity<Object> solveQuiz(@PathVariable String sqId, @RequestBody SolveQuizDTO solveQuizDTO) {
         try {
-            selfQuizService.solveQuiz(solveQuizDTO);
+            selfQuizService.solveQuiz(sqId, solveQuizDTO);
             Map<String, String> response = new HashMap<>();
             response.put("message", "제출에 성공하였습니다");
             return ResponseEntity.ok(response);
