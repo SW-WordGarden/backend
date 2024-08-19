@@ -13,5 +13,7 @@ public class WqResponseDto {
     private String wordId;
     private String word;
     private String questionType; // "four", "write", or "ox"
-    private List<String> options; // For multiple choice questions
+    private List<String> options; // 4지선다 선택지
+    private String userAnswer;
+    private String correctAnswer;
 }
