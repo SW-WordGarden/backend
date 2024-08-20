@@ -12,6 +12,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import com.wordgarden.wordgarden.dto.UserDto;
 
+import java.util.*;
+
 @Service
 public class AuthService {
     @Autowired
@@ -32,6 +34,13 @@ public class AuthService {
         }
         user.setUName(nickname);
         user.setUProvider(provider);
+
+        // 새 사용자인 경우 친구 코드 생성
+        if (isNewUser) {
+            String friendCode = generateUniqueFriendCode();
+            user.setUUrl(friendCode);
+        }
+
         user = userRepository.save(user);
 
         if (isNewUser) {
@@ -39,6 +48,14 @@ public class AuthService {
         }
 
         return user;
+    }
+
+    private String generateUniqueFriendCode() {
+        String friendCode;
+        do {
+            friendCode = UUID.randomUUID().toString().substring(0, 8);
+        } while (userRepository.existsByuUrl(friendCode));
+        return friendCode;
     }
 
     @Transactional
@@ -77,6 +94,7 @@ public class AuthService {
         dto.setUName(user.getUName());
         dto.setUImage(user.getUImage());
         dto.setUProvider(user.getUProvider());
+        dto.setUUrl(user.getUUrl());
         return dto;
     }
 
