@@ -1,5 +1,7 @@
 package com.wordgarden.wordgarden.service;
 
+import com.wordgarden.wordgarden.dto.FriendDto;
+import com.wordgarden.wordgarden.dto.FriendListDto;
 import com.wordgarden.wordgarden.entity.*;
 import com.wordgarden.wordgarden.repository.*;
 import jakarta.persistence.EntityManager;
@@ -69,6 +71,7 @@ public class MypageService {
         return userInfo;
     }
 
+    // 가장 최근에 푼 퀴즈
     private Map<String, Object> getLatestSolvedQuiz(User user) {
         Optional<Wqresult> latestWq = wqresultRepository.findTopByUserOrderByTimeDesc(user);
         Optional<Sqresult> latestSq = sqresultRepository.findTopByUserOrderByTimeDesc(user);
@@ -88,6 +91,7 @@ public class MypageService {
         return null;
     }
 
+    // 가장 최근에 푼 퀴즈의 타입이 wq
     private Map<String, Object> createWqQuizInfo(Wqresult wqresult) {
         Map<String, Object> quizInfo = new HashMap<>();
         quizInfo.put("type", "wq");
@@ -95,6 +99,7 @@ public class MypageService {
         return quizInfo;
     }
 
+    // 가장 최근에 푼 퀴즈의 타입이 sq
     private Map<String, Object> createSqQuizInfo(Sqresult sqresult) {
         Map<String, Object> quizInfo = new HashMap<>();
         quizInfo.put("type", "sq");
@@ -128,7 +133,15 @@ public class MypageService {
     }
 
     // 사용자 친구 리스트 가져오기
-    public List<String> getFriendList(String uid) {
+    public FriendListDto getFriendListWithUserUUrl(String uid) {
+        User user = userRepository.findByUid(uid)
+                .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다"));
+
+        List<FriendDto> friendList = getFriendList(uid);
+        return new FriendListDto(user.getUUrl(), friendList);
+    }
+
+    public List<FriendDto> getFriendList(String uid) {
         User user = userRepository.findByUid(uid)
                 .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다"));
 
@@ -136,33 +149,30 @@ public class MypageService {
 
         return friends.stream()
                 .map(friend -> userRepository.findByUid(friend.getFriendId())
-                        .map(User::getUName)
-                        .orElse("Unknown"))
+                        .map(u -> new FriendDto(u.getUid(), u.getUName(), u.getUImage()))
+                        .orElse(null))
+                .filter(Objects::nonNull)
                 .collect(Collectors.toList());
     }
 
-    // 친구 신고
-    public void reportFriend(String reporterId, String reportedId) {
-        // 친구 신고 로직 구현
-        System.out.println("사용자 " + reporterId + "가 사용자 " + reportedId + "를 신고했습니다");
-    }
-
     // 마이페이지 하단에 출력될 친구(랜덤)
-    private List<String> getRandomFriends(User user, int count) {
+    private List<FriendDto> getRandomFriends(User user, int count) {
         List<Friend> allFriends = friendRepository.findAllByUser(user);
         if (allFriends.size() <= count) {
             return allFriends.stream()
                     .map(friend -> userRepository.findByUid(friend.getFriendId())
-                            .map(User::getUName)
-                            .orElse("Unknown"))
+                            .map(u -> new FriendDto(u.getUid(), u.getUName(), u.getUImage()))
+                            .orElse(null))
+                    .filter(Objects::nonNull)
                     .collect(Collectors.toList());
         }
 
         Collections.shuffle(allFriends);
         return allFriends.subList(0, count).stream()
                 .map(friend -> userRepository.findByUid(friend.getFriendId())
-                        .map(User::getUName)
-                        .orElse("Unknown"))
+                        .map(u -> new FriendDto(u.getUid(), u.getUName(), u.getUImage()))
+                        .orElse(null))
+                .filter(Objects::nonNull)
                 .collect(Collectors.toList());
     }
 
@@ -193,5 +203,72 @@ public class MypageService {
         // 변경 후 즉시 다시 조회하여 확인
         User updatedUser = userRepository.findById(uid).orElseThrow();
         logger.info("After flush and clear, verified lock screen quiz setting for user {}: {}", uid, updatedUser.getULockquiz());
+    }
+
+    // 친구 추가
+    @Transactional
+    public void addFriend(String uid, String friendUrl) {
+        User user = userRepository.findByUid(uid)
+                .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다."));
+        User friend = userRepository.findByuUrl(friendUrl)  // 메소드 이름 수정
+                .orElseThrow(() -> new RuntimeException("해당 URL의 사용자를 찾을 수 없습니다."));
+
+        if (friendRepository.existsByUserAndFriendId(user, friend.getUid())) {
+            throw new RuntimeException("이미 친구로 등록된 사용자입니다.");
+        }
+
+        // 사용자 -> 친구 방향의 관계 설정
+        Friend newFriend = new Friend();
+        newFriend.setUser(user);
+        newFriend.setFriendId(friend.getUid());
+        newFriend.setRelationship(true);
+        friendRepository.save(newFriend);
+
+        // 친구 -> 사용자 방향의 관계 설정 (양방향 관계)
+        Friend reverseFriend = new Friend();
+        reverseFriend.setUser(friend);
+        reverseFriend.setFriendId(user.getUid());
+        reverseFriend.setRelationship(true);
+        friendRepository.save(reverseFriend);
+    }
+
+    // 친구 삭제
+    @Transactional
+    public void deleteFriend(String uid, String friendId) {
+        User user = userRepository.findByUid(uid)
+                .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다."));
+        User friend = userRepository.findByUid(friendId)
+                .orElseThrow(() -> new RuntimeException("친구를 찾을 수 없습니다."));
+
+        // 사용자 -> 친구 방향의 관계 삭제
+        Friend userToFriend = friendRepository.findByUserAndFriendId(user, friendId)
+                .orElseThrow(() -> new RuntimeException("해당 친구 관계를 찾을 수 없습니다."));
+        friendRepository.delete(userToFriend);
+
+        // 친구 -> 사용자 방향의 관계 삭제
+        Friend friendToUser = friendRepository.findByUserAndFriendId(friend, uid)
+                .orElseThrow(() -> new RuntimeException("해당 친구 관계를 찾을 수 없습니다."));
+        friendRepository.delete(friendToUser);
+    }
+
+    // 친구 신고
+    @Transactional
+    public void reportFriend(String reporterId, String reportedId) {
+        User reporter = userRepository.findByUid(reporterId)
+                .orElseThrow(() -> new RuntimeException("신고자를 찾을 수 없습니다."));
+        User reported = userRepository.findByUid(reportedId)
+                .orElseThrow(() -> new RuntimeException("신고된 사용자를 찾을 수 없습니다."));
+
+        Friend friendRelation = friendRepository.findByUserAndFriendId(reporter, reportedId)
+                .orElseThrow(() -> new RuntimeException("친구 관계를 찾을 수 없습니다."));
+
+        friendRelation.setRelationship(false);  // false로 설정하여 퀴즈 공유 제한
+        friendRepository.save(friendRelation);
+
+        // 역방향 관계도 처리
+        Friend reverseFriendRelation = friendRepository.findByUserAndFriendId(reported, reporterId)
+                .orElseThrow(() -> new RuntimeException("역방향 친구 관계를 찾을 수 없습니다."));
+        reverseFriendRelation.setRelationship(false);
+        friendRepository.save(reverseFriendRelation);
     }
 }

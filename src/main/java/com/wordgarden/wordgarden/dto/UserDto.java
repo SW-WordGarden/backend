@@ -11,4 +11,5 @@ public class UserDto {
     private String uName;
     private String uImage;
     private String uProvider;
+    private String uUrl;
 }
