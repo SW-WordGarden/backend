@@ -109,18 +109,15 @@ public class MypageService {
     }
 
 
-    // 사용자 프로필 이미지 업데아트
-    public void updateUserImage(String uid, MultipartFile image) {
+    // 사용자 프로필 이미지 업데이트
+    @Transactional
+    public void updateUserImage(String uid, String base64Image) {
         User user = userRepository.findByUid(uid)
                 .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다"));
 
-        try {
-            String base64Image = Base64.getEncoder().encodeToString(image.getBytes());
-            user.setUImage(base64Image);
-            userRepository.save(user);
-        } catch (IOException e) {
-            throw new RuntimeException("사용자 이미지 업데이트 실패", e);
-        }
+        // Base64 문자열을 그대로 저장
+        user.setUImage(base64Image);
+        userRepository.save(user);
     }
 
     // 사용자 닉네임 업데이트
