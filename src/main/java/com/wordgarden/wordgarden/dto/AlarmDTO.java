@@ -14,4 +14,5 @@ public class AlarmDTO {
     private LocalDateTime createTime;
     private String fromUserName;
     private String toUserName;
+    private String quizType;
 }
