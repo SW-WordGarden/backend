@@ -22,6 +22,9 @@ public class Alarm {
     @Column(name = "content", length = 2000) // wq_title이나 sq_id가 들어감
     private String content;
 
+    @Column(name = "quiz_type")
+    private String quizType;  // 퀴즈 타입
+
     @Column(name = "is_read")   // 알람 확인 여부
     private Boolean isRead;
 
