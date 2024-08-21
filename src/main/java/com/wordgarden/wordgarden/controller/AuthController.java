@@ -28,8 +28,9 @@ public class AuthController {
         String uid = loginRequest.getUid();
         String nickname = loginRequest.getNickname();
         String provider = loginRequest.getProvider();
+        String fcmToken = loginRequest.getFcmToken();
 
-        User user = authService.saveOrUpdateUser(uid, nickname, provider);
+        User user = authService.saveOrUpdateUser(uid, nickname, provider, fcmToken);
         UserDto userDto = authService.getUserByUid(user.getUid());
 
         return ResponseEntity.ok(userDto);

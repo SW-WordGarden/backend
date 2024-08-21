@@ -68,7 +68,7 @@ public class SelfQuizController {
         }
     }
 
-
+    // 풀이 제출
     @PostMapping("/solve/{sqId}")
     public ResponseEntity<Object> solveQuiz(@PathVariable String sqId, @RequestBody SolveQuizDTO solveQuizDTO) {
         try {
@@ -76,18 +76,22 @@ public class SelfQuizController {
             Map<String, String> response = new HashMap<>();
             response.put("message", "제출에 성공하였습니다");
             return ResponseEntity.ok(response);
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Failed to solve quiz: " + e.getMessage());
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Failed to solve quiz: " + e.getMessage());
+            //log.error("퀴즈 풀이 중 예상치 못한 오류 발생", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("An unexpected error occurred");
         }
     }
 
+    // 풀이한 퀴즈의 sqId와 title을 반환
     @GetMapping("/solved/{uid}")
     public ResponseEntity<Object> getSolvedQuizTitlesByUser(@PathVariable String uid) {
         try {
-            List<String> quizTitles = selfQuizService.getSolvedQuizTitlesByUser(uid);
-            return ResponseEntity.ok(quizTitles);
+            List<Map<String, String>> quizInfo = selfQuizService.getSolvedQuizTitlesByUser(uid);
+            return ResponseEntity.ok(quizInfo);
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Failed to retrieve solved quiz titles: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Failed to retrieve solved quiz info: " + e.getMessage());
         }
     }
 

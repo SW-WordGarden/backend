@@ -24,7 +24,7 @@ public class AuthService {
     private GardenBookRepository gardenBookRepository;
 
     @Transactional
-    public User saveOrUpdateUser(String uid, String nickname, String provider) {
+    public User saveOrUpdateUser(String uid, String nickname, String provider, String fcmToken) {
         User user = getUserEntityByUid(uid);
         boolean isNewUser = false;
         if (user == null) {
@@ -34,6 +34,7 @@ public class AuthService {
         }
         user.setUName(nickname);
         user.setUProvider(provider);
+        user.setFcmToken(fcmToken);  // FCM 토큰 저장
 
         // 새 사용자인 경우 친구 코드 생성
         if (isNewUser) {
