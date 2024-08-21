@@ -24,4 +24,7 @@ public class Friend {
 
     @Column(name = "relationship")
     private Boolean relationship;
+
+    @Column(name = "report_reason")
+    private String reportReason;  // 신고 사유 추가
 }
