@@ -1,20 +1,21 @@
 package com.wordgarden.wordgarden.service;
 
+import com.google.firebase.messaging.FirebaseMessaging;
 import com.wordgarden.wordgarden.dto.AlarmDTO;
+import com.wordgarden.wordgarden.dto.AlarmDetailDTO;
 import com.wordgarden.wordgarden.entity.Alarm;
-import com.wordgarden.wordgarden.entity.Sqinfo;
 import com.wordgarden.wordgarden.entity.User;
-import com.wordgarden.wordgarden.entity.Wqinfo;
+import com.wordgarden.wordgarden.exception.AlarmNotFoundException;
+import com.wordgarden.wordgarden.exception.UnauthorizedException;
 import com.wordgarden.wordgarden.exception.UserNotFoundException;
 import com.wordgarden.wordgarden.repository.AlarmRepository;
-import com.wordgarden.wordgarden.repository.SqinfoRepository;
 import com.wordgarden.wordgarden.repository.UserRepository;
-import com.wordgarden.wordgarden.repository.WqinfoRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
+
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -30,8 +31,10 @@ public class SharingService {
     private AlarmRepository alarmRepository;
     @Autowired
     private FCMNotificationService fcmNotificationService;
+    @Autowired
+    private FirebaseMessaging firebaseMessaging;
 
-    @Transactional
+    // 퀴즈 공유
     public String shareQuiz(String fromUserId, String toUserId, String quizId) {
         log.info("Sharing quiz: {} from user: {} to user: {}", quizId, fromUserId, toUserId);
 
@@ -42,29 +45,36 @@ public class SharingService {
 
         String quizType = quizId.startsWith("앱 퀴즈_") ? "WQ" : "SQ";
 
-        // Save alarm to database
-        Alarm alarm = new Alarm();
-        alarm.setFromUser(fromUser);
-        alarm.setToUser(toUser);
-        alarm.setContent(quizId);
-        alarm.setIsRead(false);
-        alarm.setCreateTime(LocalDateTime.now());
-        alarmRepository.save(alarm);
-        log.info("Alarm saved to database: {}", alarm.getAlarmId());
+        // 1. 알람 생성 및 DB 저장
+        Alarm savedAlarm = createAndSaveAlarm(fromUser, toUser, quizId);
+        log.info("Alarm saved to database: {}", savedAlarm.getAlarmId());
 
-        // Send FCM notification
+        // 2. FCM 알림 전송
         String fcmResult = fcmNotificationService.sendQuizShareNotification(fromUser, toUser, quizId, quizType);
         log.info("FCM notification result: {}", fcmResult);
 
-        return fcmResult;
+        return "Alarm saved with ID: " + savedAlarm.getAlarmId() + ". FCM result: " + fcmResult;
     }
 
-    public List<AlarmDTO> getAlarmList(String userId) {
-        log.info("Fetching alarm list for user: {}", userId);
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new UserNotFoundException("User not found: " + userId));
+    private Alarm createAndSaveAlarm(User fromUser, User toUser, String content) {
+        Long nextSequence = alarmRepository.findMaxSequenceByUserId(toUser.getUid()) + 1;
 
-        List<Alarm> alarms = alarmRepository.findByToUserOrderByCreateTimeDesc(user);
+        Alarm alarm = new Alarm();
+        alarm.setFromUser(fromUser);
+        alarm.setToUser(toUser);
+        alarm.setContent(content);
+        alarm.setIsRead(false);
+        alarm.setCreateTime(LocalDateTime.now());
+        alarm.setSequence(nextSequence);
+
+        return alarmRepository.save(alarm);
+    }
+
+    // 최근 30개 알람 목록 반환
+    public List<AlarmDTO> getAlarmList(String userId) {
+        log.info("Fetching latest 30 alarms for user: {}", userId);
+        PageRequest pageRequest = PageRequest.of(0, 30);
+        List<Alarm> alarms = alarmRepository.findTop30ByToUserOrderByCreateTimeDesc(userId, pageRequest);
         return alarms.stream()
                 .map(this::convertToDTO)
                 .collect(Collectors.toList());
@@ -76,8 +86,36 @@ public class SharingService {
                 alarm.getContent(),
                 alarm.getIsRead(),
                 alarm.getCreateTime(),
-                alarm.getFromUser().getUName(),
-                alarm.getToUser().getUName()
+                alarm.getFromUser().getUid(),
+                alarm.getToUser().getUid()
         );
+    }
+
+    // 알람 상세
+    public AlarmDetailDTO getAlarmById(String alarmId) {
+        Alarm alarm = alarmRepository.findByIdWithFromUser(alarmId)
+                .orElseThrow(() -> new AlarmNotFoundException("Alarm not found with id: " + alarmId));
+
+        return convertToAlarmDetailDTO(alarm);
+    }
+
+    private AlarmDetailDTO convertToAlarmDetailDTO(Alarm alarm) {
+        AlarmDetailDTO dto = new AlarmDetailDTO();
+        dto.setAlarmId(alarm.getAlarmId());
+        dto.setContent(alarm.getContent());
+        dto.setFromUserName(alarm.getFromUser().getUName());
+        return dto;
+    }
+
+    // 알림 삭제
+    public void deleteAlarm(String alarmId, String userId) {
+        Alarm alarm = alarmRepository.findById(alarmId)
+                .orElseThrow(() -> new AlarmNotFoundException("Alarm not found with id: " + alarmId));
+
+        if (!alarm.getToUser().getUid().equals(userId)) {
+            throw new UnauthorizedException("User is not authorized to delete this alarm");
+        }
+
+        alarmRepository.delete(alarm);
     }
 }

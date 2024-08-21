@@ -20,6 +20,8 @@ public class FCMNotificationService {
 
     @Autowired
     private FCMTokenService fcmTokenService;
+    @Autowired
+    private FirebaseMessaging firebaseMessaging;
 
     public String sendQuizShareNotification(User fromUser, User toUser, String quizTitle, String quizType) {
         String token = fcmTokenService.getUserFCMToken(toUser.getUid());
