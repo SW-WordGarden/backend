@@ -47,6 +47,7 @@ public class MypageService {
         userInfo.put("rank", calculateUserRank(user));
         userInfo.put("randomFriends", getRandomFriends(user, 5));
         userInfo.put("name", user.getUName());
+        userInfo.put("uUrl", user.getUUrl());
 
         // 7일간의 퀴즈 결과 통계
         LocalDateTime sevenDaysAgo = LocalDateTime.now().minusDays(7);
