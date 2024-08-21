@@ -137,6 +137,7 @@ public class WqService {
         dto.setWqTitle(wqinfo.getWqTitle());
         dto.setWordId(wqinfo.getWord().getWordId());
         dto.setWord(wqinfo.getWord().getWord());
+        dto.setCorrectAnswer(wqinfo.getWqAnswer());  // Set the correct answer here as well
 
         String questionType = determineQuestionType(wqinfo.getWqId());
         dto.setQuestionType(questionType);
@@ -286,14 +287,25 @@ public class WqService {
         return wqresultRepository.findDistinctWqTitlesByUserId(userId);
     }
 
-    // 타이틀로 큊 가져오기
-    public List<WqResponseDto> getQuizByTitle(String wqTitle) {
-        log.info("Searching for quiz with title: {}", wqTitle);
+    // 타이틀로 퀴즈 가져오기
+    public List<WqResponseDto> getQuizByTitleWithUserAnswers(String wqTitle, String userId) {
         List<Wqinfo> quizQuestions = wqinfoRepository.findByWqTitle(wqTitle);
-        log.info("Found {} questions for quiz title: {}", quizQuestions.size(), wqTitle);
-        return quizQuestions.stream()
-                .map(this::createEnhancedDto)
-                .collect(Collectors.toList());
+        List<WqResponseDto> responseDtos = new ArrayList<>();
+
+        for (Wqinfo question : quizQuestions) {
+            WqResponseDto dto = createEnhancedDto(question);
+
+            // 사용자 작성 답안
+            Optional<Wqresult> result = wqresultRepository.findByWqInfoAndUserUid(question, userId);
+            result.ifPresent(wqresult -> dto.setUserAnswer(wqresult.getUWqA()));
+
+            // 정답
+            dto.setCorrectAnswer(question.getWqAnswer());
+
+            responseDtos.add(dto);
+        }
+
+        return responseDtos;
     }
 
     // 사용자 점수 반환

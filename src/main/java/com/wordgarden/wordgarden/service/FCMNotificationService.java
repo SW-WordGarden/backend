@@ -1,11 +1,14 @@
 package com.wordgarden.wordgarden.service;
 
 import com.google.firebase.messaging.FirebaseMessaging;
+import com.google.firebase.messaging.FirebaseMessagingException;
 import com.google.firebase.messaging.Message;
 import com.google.firebase.messaging.Notification;
 import com.wordgarden.wordgarden.entity.Alarm;
 import com.wordgarden.wordgarden.entity.User;
 import com.wordgarden.wordgarden.repository.AlarmRepository;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -13,13 +16,14 @@ import java.time.LocalDateTime;
 
 @Service
 public class FCMNotificationService {
+    private static final Logger log = LoggerFactory.getLogger(FCMNotificationService.class);
+
     @Autowired
     private FCMTokenService fcmTokenService;
-
     @Autowired
-    private AlarmRepository alarmRepository;
+    private FirebaseMessaging firebaseMessaging;
 
-    public void sendQuizShareNotification(User fromUser, User toUser, String quizTitle, String quizType) {
+    public String sendQuizShareNotification(User fromUser, User toUser, String quizTitle, String quizType) {
         String token = fcmTokenService.getUserFCMToken(toUser.getUid());
 
         String title = "New Quiz Shared";
@@ -35,18 +39,11 @@ public class FCMNotificationService {
 
         try {
             String response = FirebaseMessaging.getInstance().send(message);
-            System.out.println("Successfully sent message: " + response);
-
-            // Save to database
-            Alarm alarm = new Alarm();
-            alarm.setContent(quizTitle);
-            alarm.setIsRead(false);
-            alarm.setCreateTime(LocalDateTime.now());
-            alarm.setFromUser(fromUser);
-            alarm.setToUser(toUser);
-            alarmRepository.save(alarm);
-        } catch (Exception e) {
-            e.printStackTrace();
+            log.info("Successfully sent FCM message: {}", response);
+            return "FCM sent successfully: " + response;
+        } catch (FirebaseMessagingException e) {
+            log.error("Failed to send FCM message", e);
+            return "Failed to send FCM message: " + e.getMessage();
         }
     }
 }

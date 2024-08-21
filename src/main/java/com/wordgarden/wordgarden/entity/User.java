@@ -37,11 +37,8 @@ public class User {
     @Column(name = "u_provider")
     private String uProvider;   // 소셜로그인 플랫폼
 
-//    @Column(name = "lock_screen_quiz_enabled")
-//    private Boolean lockScreenQuizEnabled = false; // 잠금화면 퀴즈 설정 여부
-
     @Column(name = "u_lockquiz")
-    private Boolean uLockquiz = false;
+    private Boolean uLockquiz = false; // 잠금화면 퀴즈 설정 여부
 
     @JsonIgnore
     // 또는 @JsonManagedReference

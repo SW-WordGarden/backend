@@ -126,51 +126,56 @@ public class SelfQuizService {
                 .orElseThrow(() -> new RuntimeException("Quiz not found"));
 
         int correctAnswers = 0;
+        List<Sqresult> sqresults = new ArrayList<>();
 
         for (AnswerDTO answerDTO : solveQuizDTO.getAnswers()) {
-            try {
-                Sq sq = sqRepository.findById(answerDTO.getQuestionId())
-                        .orElseThrow(() -> new RuntimeException("Question not found"));
+            Sq sq = sqRepository.findById(answerDTO.getQuestionId())
+                    .orElseThrow(() -> new RuntimeException("Question not found"));
 
-                Sqresult sqresult = new Sqresult();
-                sqresult.setUser(user);
-                sqresult.setSqinfo(sqinfo);
-                sqresult.setUSqA(answerDTO.getUserAnswer());
-                sqresult.setSqQnum(sq.getSqQnum());
-                sqresult.setTime(new Timestamp(System.currentTimeMillis()));
+            Sqresult sqresult = new Sqresult();
+            sqresult.setUser(user);
+            sqresult.setSqinfo(sqinfo);
+            sqresult.setUSqA(answerDTO.getUserAnswer());
+            sqresult.setSqQnum(sq.getSqQnum());
+            sqresult.setTime(new Timestamp(System.currentTimeMillis()));
 
-                // 정답 체크
-                boolean isCorrect = sq.getSqAnswer().equalsIgnoreCase(answerDTO.getUserAnswer());
-                sqresult.setSqCheck(isCorrect);
+            boolean isCorrect = sq.getSqAnswer().equalsIgnoreCase(answerDTO.getUserAnswer());
+            sqresult.setSqCheck(isCorrect);
 
-                if (isCorrect) {
-                    correctAnswers++;
-                }
-
-                sqresultRepository.save(sqresult);
-            } catch (Exception e) {
-                log.error("답변 처리 중 오류 발생: {}", answerDTO, e);
+            if (isCorrect) {
+                correctAnswers++;
             }
+
+            sqresults.add(sqresult);
         }
 
-        // Point와 Coin 증가
-        try {
-            int pointsEarned = correctAnswers * 25;
-            int currentPoints = user.getUPoint() != null ? user.getUPoint() : 0;
-            user.setUPoint(currentPoints + pointsEarned);
-            userRepository.save(user);
+        sqresultRepository.saveAll(sqresults);
 
-            gardenService.increaseCoins(user.getUid(), pointsEarned);
+        int pointsEarned = correctAnswers * 25;
+        user.setUPoint(user.getUPoint() + pointsEarned);
+        userRepository.save(user);
 
-            log.info("사용자 {}의 포인트와 코인이 {} 만큼 증가했습니다.", user.getUid(), pointsEarned);
-        } catch (Exception e) {
-            log.error("포인트 및 코인 증가 중 오류 발생: {}", e.getMessage());
-        }
+        gardenService.increaseCoins(user.getUid(), pointsEarned);
+
+        log.info("사용자 {}의 포인트와 코인이 {} 만큼 증가했습니다.", user.getUid(), pointsEarned);
     }
 
     // 풀이한 답 처리
-    public List<String> getSolvedQuizTitlesByUser(String uid) {
-        return sqresultRepository.findDistinctSqTitlesByUserUid(uid);
+    public List<Map<String, String>> getSolvedQuizTitlesByUser(String uid) {
+        try {
+            List<Object[]> results = sqresultRepository.findDistinctSqInfoByUserUid(uid);
+            return results.stream()
+                    .map(result -> {
+                        Map<String, String> quizInfo = new HashMap<>();
+                        quizInfo.put("sqId", result[0] != null ? result[0].toString() : null);
+                        quizInfo.put("title", result[1] != null ? result[1].toString() : null);
+                        return quizInfo;
+                    })
+                    .collect(Collectors.toList());
+        } catch (Exception e) {
+            log.error("Error in getSolvedQuizTitlesByUser for uid: " + uid, e);
+            throw new RuntimeException("Failed to retrieve solved quiz titles", e);
+        }
     }
 
     public SqDTO getSolvedQuizByUserAndSqId(String uid, String sqId) {

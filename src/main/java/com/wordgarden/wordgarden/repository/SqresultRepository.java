@@ -21,4 +21,7 @@ public interface SqresultRepository extends JpaRepository<Sqresult, Long> {
     Optional<Sqresult> findTopByUserOrderByTimeDesc(User user);
 
     List<Sqresult> findByUser_UidAndSqinfo(String uid, Sqinfo sqinfo);
+
+    @Query("SELECT DISTINCT sr.sqinfo.sqId as sqId, sr.sqinfo.sqTitle as title FROM Sqresult sr WHERE sr.user.uid = :uid")
+    List<Object[]> findDistinctSqInfoByUserUid(@Param("uid") String uid);;
 }

@@ -12,9 +12,12 @@ import java.time.LocalDateTime;
 @Setter
 public class Alarm {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+//    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "alarm_id")  // 알람 고유 아이디
-    private Long alarmId;
+    private String alarmId;
+
+    @Column(name = "sequence")
+    private Long sequence;  // 번호 저장
 
     @Column(name = "content", length = 2000) // wq_title이나 sq_id가 들어감
     private String content;
@@ -32,4 +35,11 @@ public class Alarm {
     @ManyToOne(fetch = FetchType.LAZY)  // 받는 사용자의 아이디
     @JoinColumn(name = "to_id")
     private User toUser;
+
+    @PrePersist
+    public void prePersist() {  // 자바 ID 생성
+        if (this.alarmId == null && this.toUser != null && this.sequence != null) {
+            this.alarmId = this.toUser.getUid() + "_" + this.sequence;
+        }
+    }
 }
