@@ -250,7 +250,7 @@ public class MypageService {
 
     // 친구 신고
     @Transactional
-    public void reportFriend(String reporterId, String reportedId) {
+    public void reportFriend(String reporterId, String reportedId, String reason) {
         User reporter = userRepository.findByUid(reporterId)
                 .orElseThrow(() -> new RuntimeException("신고자를 찾을 수 없습니다."));
         User reported = userRepository.findByUid(reportedId)
@@ -260,12 +260,15 @@ public class MypageService {
                 .orElseThrow(() -> new RuntimeException("친구 관계를 찾을 수 없습니다."));
 
         friendRelation.setRelationship(false);  // false로 설정하여 퀴즈 공유 제한
+        friendRelation.setReportReason(reason);  // 신고 사유 설정
         friendRepository.save(friendRelation);
 
         // 역방향 관계도 처리
         Friend reverseFriendRelation = friendRepository.findByUserAndFriendId(reported, reporterId)
                 .orElseThrow(() -> new RuntimeException("역방향 친구 관계를 찾을 수 없습니다."));
         reverseFriendRelation.setRelationship(false);
+        reverseFriendRelation.setReportReason(reason);  // 역방향 관계에도 신고 사유 설정
         friendRepository.save(reverseFriendRelation);
     }
+
 }
