@@ -272,4 +272,17 @@ public class MypageService {
         friendRepository.save(reverseFriendRelation);
     }
 
+    // FCM엡데이트
+    @Transactional
+    public boolean updateFcmToken(String uid, String newFcmToken) {
+        User user = userRepository.findByUid(uid)
+                .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다"));
+
+        if (!Objects.equals(user.getFcmToken(), newFcmToken)) {
+            user.setFcmToken(newFcmToken);
+            userRepository.save(user);
+            return true;
+        }
+        return false;
+    }
 }

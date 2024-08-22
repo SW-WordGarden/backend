@@ -12,6 +12,7 @@ public class AlarmDTO {
     private String content;
     private Boolean isRead;
     private LocalDateTime createTime;
+    private String fromUserUid;
     private String fromUserName;
     private String toUserName;
     private String quizType;
