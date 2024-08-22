@@ -96,12 +96,11 @@ public class SharingService {
     public List<AlarmDTO> getAlarmList(String userId) {
         log.info("Fetching latest 30 alarms for user: {}", userId);
         PageRequest pageRequest = PageRequest.of(0, 30);
-        List<Alarm> alarms = alarmRepository.findTop30ByToUserOrderByCreateTimeDesc(userId, pageRequest);
+        List<Alarm> alarms = alarmRepository.findTop30ByAlram(userId, pageRequest);
         return alarms.stream()
                 .map(this::convertToDTO)
                 .collect(Collectors.toList());
     }
-
     private AlarmDTO convertToDTO(Alarm alarm) {
         return new AlarmDTO(
                 alarm.getAlarmId(),
@@ -109,6 +108,7 @@ public class SharingService {
                 alarm.getIsRead(),
                 alarm.getCreateTime(),
                 alarm.getFromUser().getUid(),
+                alarm.getFromUser().getUName(), // 보낸 사용자의 닉네임 추가
                 alarm.getToUser().getUid(),
                 alarm.getQuizType()
         );

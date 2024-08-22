@@ -18,4 +18,8 @@ public interface AlarmRepository extends JpaRepository<Alarm, String> {
 
     @Query("SELECT a FROM Alarm a JOIN FETCH a.fromUser WHERE a.alarmId = :alarmId")
     Optional<Alarm> findByIdWithFromUser(@Param("alarmId") String alarmId);
+
+    @Query("SELECT a FROM Alarm a JOIN FETCH a.fromUser JOIN FETCH a.toUser WHERE a.toUser.uid = :userId ORDER BY a.createTime DESC")
+    List<Alarm> findTop30ByAlram(@Param("userId") String userId, Pageable pageable);
+
 }
