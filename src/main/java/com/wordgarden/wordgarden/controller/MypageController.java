@@ -121,4 +121,23 @@ public class MypageController {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
     }
+
+    // FCM업데이트
+    @PatchMapping("/fcmtoken/{uid}")
+    public ResponseEntity<?> updateFcmToken(@PathVariable String uid, @RequestBody Map<String, String> payload) {
+        String newFcmToken = payload.get("fcmToken");
+        if (newFcmToken == null || newFcmToken.isEmpty()) {
+            return ResponseEntity.badRequest().body("FCM Token is required");
+        }
+        try {
+            boolean updated = mypageService.updateFcmToken(uid, newFcmToken);
+            if (updated) {
+                return ResponseEntity.ok("FCM Token updated");
+            } else {
+                return ResponseEntity.ok("FCM Token is the same, no update needed");
+            }
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
 }
