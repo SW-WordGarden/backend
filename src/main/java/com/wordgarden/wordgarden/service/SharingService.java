@@ -5,11 +5,14 @@ import com.wordgarden.wordgarden.dto.AlarmDTO;
 import com.wordgarden.wordgarden.dto.AlarmDetailDTO;
 import com.wordgarden.wordgarden.entity.Alarm;
 import com.wordgarden.wordgarden.entity.User;
+import com.wordgarden.wordgarden.entity.Wqinfo;
 import com.wordgarden.wordgarden.exception.AlarmNotFoundException;
 import com.wordgarden.wordgarden.exception.UnauthorizedException;
 import com.wordgarden.wordgarden.exception.UserNotFoundException;
 import com.wordgarden.wordgarden.repository.AlarmRepository;
+import com.wordgarden.wordgarden.repository.SqinfoRepository;
 import com.wordgarden.wordgarden.repository.UserRepository;
+import com.wordgarden.wordgarden.repository.WqinfoRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -33,6 +36,10 @@ public class SharingService {
     private FCMNotificationService fcmNotificationService;
     @Autowired
     private FirebaseMessaging firebaseMessaging;
+    @Autowired
+    private WqinfoRepository wqinfoRepository;
+    @Autowired
+    private SqinfoRepository sqinfoRepository;
 
     // 퀴즈 공유
     public String shareQuiz(String fromUserId, String toUserId, String quizId) {
@@ -43,10 +50,10 @@ public class SharingService {
         User toUser = userRepository.findById(toUserId)
                 .orElseThrow(() -> new UserNotFoundException("To user not found: " + toUserId));
 
-        String quizType = quizId.startsWith("앱 퀴즈_") ? "WQ" : "SQ";
+        String quizType = determineQuizType(quizId);
 
         // 1. 알람 생성 및 DB 저장
-        Alarm savedAlarm = createAndSaveAlarm(fromUser, toUser, quizId);
+        Alarm savedAlarm = createAndSaveAlarm(fromUser, toUser, quizId, quizType);
         log.info("Alarm saved to database: {}", savedAlarm.getAlarmId());
 
         // 2. FCM 알림 전송
@@ -56,7 +63,21 @@ public class SharingService {
         return "Alarm saved with ID: " + savedAlarm.getAlarmId() + ". FCM result: " + fcmResult;
     }
 
-    private Alarm createAndSaveAlarm(User fromUser, User toUser, String content) {
+
+    private String determineQuizType(String quizId) {
+        if (quizId.startsWith("앱 퀴즈_")) {
+            // Wqinfo에서 정확히 일치하는 제목이 있는지 확인
+            List<Wqinfo> wqInfoList = wqinfoRepository.findByWqTitle(quizId);
+            if (!wqInfoList.isEmpty()) {
+                return "WQ";
+            }
+        }
+
+        // Wqinfo에 없거나 "앱 퀴즈_"로 시작하지 않으면 SQ로 간주
+        return "SQ";
+    }
+
+    private Alarm createAndSaveAlarm(User fromUser, User toUser, String content, String quizType) {
         Long nextSequence = alarmRepository.findMaxSequenceByUserId(toUser.getUid()) + 1;
 
         Alarm alarm = new Alarm();
@@ -66,6 +87,7 @@ public class SharingService {
         alarm.setIsRead(false);
         alarm.setCreateTime(LocalDateTime.now());
         alarm.setSequence(nextSequence);
+        alarm.setQuizType(quizType);
 
         return alarmRepository.save(alarm);
     }
@@ -87,7 +109,8 @@ public class SharingService {
                 alarm.getIsRead(),
                 alarm.getCreateTime(),
                 alarm.getFromUser().getUid(),
-                alarm.getToUser().getUid()
+                alarm.getToUser().getUid(),
+                alarm.getQuizType()
         );
     }
 
@@ -104,6 +127,7 @@ public class SharingService {
         dto.setAlarmId(alarm.getAlarmId());
         dto.setContent(alarm.getContent());
         dto.setFromUserName(alarm.getFromUser().getUName());
+        dto.setQuizType(alarm.getQuizType());
         return dto;
     }
 

@@ -17,6 +17,8 @@ import java.util.Map;
 @RequestMapping("/user")
 public class MypageController {
 
+    private static final Logger logger = LoggerFactory.getLogger(MypageController.class);
+
     @Autowired
     private MypageService mypageService;
 
@@ -28,9 +30,13 @@ public class MypageController {
 
     // 이미지 업데이트
     @PatchMapping("/image/{uid}")
-    public ResponseEntity<?> updateUserImage(@PathVariable String uid, @RequestPart("image") MultipartFile image) {
+    public ResponseEntity<?> updateUserImage(@PathVariable String uid, @RequestBody Map<String, String> payload) {
+        String base64Image = payload.get("image");
+        if (base64Image == null || base64Image.isEmpty()) {
+            return ResponseEntity.badRequest().body("Image data is required");
+        }
         try {
-            mypageService.updateUserImage(uid, image);
+            mypageService.updateUserImage(uid, base64Image);
             return ResponseEntity.ok("Profile changed");
         } catch (RuntimeException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
@@ -56,7 +62,7 @@ public class MypageController {
 
 
     // 잠금 화면 퀴즈 설정
-    private static final Logger logger = LoggerFactory.getLogger(MypageController.class);
+
 
     @PostMapping("/{uid}/lockquiz")
     public ResponseEntity<?> updateLockScreenQuizSetting(@PathVariable String uid, @RequestParam boolean enabled) {
@@ -102,13 +108,14 @@ public class MypageController {
     public ResponseEntity<?> reportFriend(@RequestBody Map<String, String> reportInfo) {
         String reporterId = reportInfo.get("reporterId");
         String reportedId = reportInfo.get("reportedId");
+        String reason = reportInfo.get("reason");  // 신고 사유
 
-        if (reporterId == null || reportedId == null) {
-            return ResponseEntity.badRequest().body("Reporter ID and reported ID are required");
+        if (reporterId == null || reportedId == null || reason == null) {
+            return ResponseEntity.badRequest().body("Reporter ID, reported ID, and reason are required");
         }
 
         try {
-            mypageService.reportFriend(reporterId, reportedId);
+            mypageService.reportFriend(reporterId, reportedId, reason);
             return ResponseEntity.ok("친구가 신고되었습니다. 퀴즈 공유가 제한됩니다.");
         } catch (RuntimeException e) {
             return ResponseEntity.badRequest().body(e.getMessage());

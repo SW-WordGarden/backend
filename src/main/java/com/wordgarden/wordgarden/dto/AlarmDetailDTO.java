@@ -7,4 +7,5 @@ public class AlarmDetailDTO {
     private String alarmId;
     private String content;
     private String fromUserName;
+    private String quizType;
 }
