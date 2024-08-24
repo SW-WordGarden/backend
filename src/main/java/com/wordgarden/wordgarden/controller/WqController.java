@@ -91,12 +91,37 @@ public class WqController {
     }
 
     // 제목으로 모든 문제 반환
+//    @GetMapping("/{wqTitle}")
+//    public ResponseEntity<?> getQuizByTitle(@PathVariable String wqTitle, @RequestParam String userId) {
+//        try {
+//            String decodedTitle = URLDecoder.decode(wqTitle, StandardCharsets.UTF_8.name());
+//            log.info("Fetching quiz for title: {} and user: {}", decodedTitle, userId);
+//            List<WqResponseDto> quizQuestions = wqService.getQuizByTitleWithUserAnswers(decodedTitle, userId);
+//            if (quizQuestions.isEmpty()) {
+//                log.warn("No questions found for quiz title: {}", decodedTitle);
+//                return ResponseEntity.notFound().build();
+//            }
+//            log.info("Returning {} questions for quiz title: {}", quizQuestions.size(), decodedTitle);
+//            return ResponseEntity.ok(quizQuestions);
+//        } catch (Exception e) {
+//            log.error("Error fetching quiz: ", e);
+//            Map<String, String> response = new HashMap<>();
+//            response.put("error", "퀴즈를 불러오는 데 실패했습니다: " + e.getMessage());
+//            return ResponseEntity.badRequest().body(response);
+//        }
+//    }
+
     @GetMapping("/{wqTitle}")
-    public ResponseEntity<?> getQuizByTitle(@PathVariable String wqTitle, @RequestParam String userId) {
+    public ResponseEntity<?> getQuizByTitle(@PathVariable String wqTitle, @RequestParam(required = false) String userId) {
         try {
             String decodedTitle = URLDecoder.decode(wqTitle, StandardCharsets.UTF_8.name());
             log.info("Fetching quiz for title: {} and user: {}", decodedTitle, userId);
-            List<WqResponseDto> quizQuestions = wqService.getQuizByTitleWithUserAnswers(decodedTitle, userId);
+            List<WqResponseDto> quizQuestions;
+            if (userId != null) {
+                quizQuestions = wqService.getQuizByTitleWithUserAnswers(decodedTitle, userId);
+            } else {
+                quizQuestions = wqService.getQuizByTitle(decodedTitle);
+            }
             if (quizQuestions.isEmpty()) {
                 log.warn("No questions found for quiz title: {}", decodedTitle);
                 return ResponseEntity.notFound().build();

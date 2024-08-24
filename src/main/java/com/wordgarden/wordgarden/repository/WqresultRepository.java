@@ -26,4 +26,6 @@ public interface WqresultRepository extends JpaRepository<Wqresult, Long> {
     Optional<Wqresult> findTopByUserOrderByTimeDesc(User user);
 
     Optional<Wqresult> findByWqInfoAndUserUid(Wqinfo wqInfo, String userId);
+
+    void deleteByUser(User user);
 }

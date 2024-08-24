@@ -35,6 +35,14 @@ public class MypageService {
     private SqinfoRepository sqinfoRepository;
     @Autowired
     private SqresultRepository sqresultRepository;
+    @Autowired
+    private WqwrongRepository wqwrongRepository;
+    @Autowired
+    private LikeRepository likeRepository;
+    @Autowired
+    private GardenRepository gardenRepository;
+    @Autowired
+    private GardenBookRepository gardenBookRepository;
 
     // 마이페이지에서 보여지는 모든 사용자 정보
     public Map<String, Object> getUserInfo(String uid) {
@@ -284,5 +292,54 @@ public class MypageService {
             return true;
         }
         return false;
+    }
+
+    // 회원 탈퇴
+    @Transactional
+    public void deleteUser(String uid) {
+        logger.info("Attempting to delete user with UID: {}", uid);
+
+        User user = userRepository.findById(uid)
+                .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다: " + uid));
+
+        // 연관된 데이터 삭제
+        deleteWqwrongs(user);
+        deleteWqresults(user);
+        deleteFriends(uid);
+        deleteLikes(user);
+        deleteGarden(user);
+
+        userRepository.delete(user);
+        logger.info("User deleted successfully. UID: {}", uid);
+    }
+
+    private void deleteWqwrongs(User user) {
+        logger.info("Deleting Wqwrongs for user: {}", user.getUid());
+        wqwrongRepository.deleteByUser(user);
+    }
+
+    private void deleteWqresults(User user) {
+        logger.info("Deleting Wqresults for user: {}", user.getUid());
+        wqresultRepository.deleteByUser(user);
+    }
+
+    private void deleteFriends(String uid) {
+        logger.info("Deleting Friends for user: {}", uid);
+        friendRepository.deleteByUserUidOrFriendId(uid);
+    }
+
+    private void deleteLikes(User user) {
+        logger.info("Deleting Likes for user: {}", user.getUid());
+        likeRepository.deleteByUser(user);
+    }
+
+    private void deleteGarden(User user) {
+        logger.info("Deleting Garden for user: {}", user.getUid());
+        Optional<Garden> gardenOpt = gardenRepository.findByUser(user);
+        if (gardenOpt.isPresent()) {
+            Garden garden = gardenOpt.get();
+            // Garden을 삭제하면 cascade 설정에 의해 관련된 GardenBook도 자동으로 삭제됩니다.
+            gardenRepository.delete(garden);
+        }
     }
 }
