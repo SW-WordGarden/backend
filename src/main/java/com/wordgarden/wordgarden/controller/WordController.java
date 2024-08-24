@@ -102,4 +102,15 @@ public class WordController {
         }
     }
 
+    // learning에서 단어 하나
+    @GetMapping("/learning/random")
+    public ResponseEntity<WordDTO> getRandomLearningWord() {
+        WordDTO randomWord = wordService.getRandomLearningWord();
+        if (randomWord != null) {
+            return ResponseEntity.ok(randomWord);
+        } else {
+            return ResponseEntity.notFound().build();
+        }
+    }
+
 }

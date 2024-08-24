@@ -278,4 +278,13 @@ public class WordService {
         dto.setWordInfo(word.getWordInfo());
         return dto;
     }
+
+    // Learning에서 단어 하나 추출하는 api
+    @Transactional(readOnly = true)
+    public WordDTO getRandomLearningWord() {
+        Learning randomLearning = learningRepository.findRandomLearning();
+        return randomLearning != null ? convertWordToDTO(randomLearning.getWordEntity()) : null;
+    }
+
+
 }
