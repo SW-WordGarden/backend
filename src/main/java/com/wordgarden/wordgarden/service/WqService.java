@@ -209,10 +209,20 @@ public class WqService {
         results.add(result);
 
         if (!result.getWqCheck()) {
-            wrongs.add(createWqwrong(user, wqinfo));
+            addUniqueWqwrong(user, wqinfo, wrongs);
         }
 
         return result.getWqCheck();
+    }
+
+    private void addUniqueWqwrong(User user, Wqinfo wqinfo, List<Wqwrong> wrongs) {
+        String wordId = wqinfo.getWord().getWordId();
+        boolean exists = wqwrongRepository.existsByUserAndWordWordId(user, wordId);
+
+        if (!exists) {
+            Wqwrong wrong = createWqwrong(user, wqinfo);
+            wrongs.add(wrong);
+        }
     }
 
 
@@ -288,6 +298,26 @@ public class WqService {
     }
 
     // 타이틀로 퀴즈 가져오기
+//    public List<WqResponseDto> getQuizByTitleWithUserAnswers(String wqTitle, String userId) {
+//        List<Wqinfo> quizQuestions = wqinfoRepository.findByWqTitle(wqTitle);
+//        List<WqResponseDto> responseDtos = new ArrayList<>();
+//
+//        for (Wqinfo question : quizQuestions) {
+//            WqResponseDto dto = createEnhancedDto(question);
+//
+//            // 사용자 작성 답안
+//            Optional<Wqresult> result = wqresultRepository.findByWqInfoAndUserUid(question, userId);
+//            result.ifPresent(wqresult -> dto.setUserAnswer(wqresult.getUWqA()));
+//
+//            // 정답
+//            dto.setCorrectAnswer(question.getWqAnswer());
+//
+//            responseDtos.add(dto);
+//        }
+//
+//        return responseDtos;
+//    }
+
     public List<WqResponseDto> getQuizByTitleWithUserAnswers(String wqTitle, String userId) {
         List<Wqinfo> quizQuestions = wqinfoRepository.findByWqTitle(wqTitle);
         List<WqResponseDto> responseDtos = new ArrayList<>();
@@ -306,6 +336,17 @@ public class WqService {
         }
 
         return responseDtos;
+    }
+
+    public List<WqResponseDto> getQuizByTitle(String wqTitle) {
+        List<Wqinfo> quizQuestions = wqinfoRepository.findByWqTitle(wqTitle);
+        return quizQuestions.stream()
+                .map(question -> {
+                    WqResponseDto dto = createEnhancedDto(question);
+                    dto.setCorrectAnswer(question.getWqAnswer());  // 정답 설정
+                    return dto;
+                })
+                .collect(Collectors.toList());
     }
 
     // 사용자 점수 반환

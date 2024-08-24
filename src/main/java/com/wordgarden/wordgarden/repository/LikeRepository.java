@@ -22,4 +22,7 @@ public interface LikeRepository extends JpaRepository<Like, Long> {
 
     // 사용자 ID를 기준으로 사용자의 좋아요 리스트 찾기
     List<Like> findByUser(User user);
+
+    void deleteByUser(User user);
 }
+

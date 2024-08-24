@@ -140,4 +140,18 @@ public class MypageController {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
     }
+
+    // 회원 탈퇴
+    @DeleteMapping("/delete/{uid}")
+    public ResponseEntity<?> deleteUser(@PathVariable String uid) {
+        logger.info("Received request to delete user. UID: {}", uid);
+        try {
+            mypageService.deleteUser(uid);
+            logger.info("User deleted successfully. UID: {}", uid);
+            return ResponseEntity.ok("사용자 계정이 삭제되었습니다.");
+        } catch (Exception e) {
+            logger.error("Failed to delete user. UID: {}. Error: {}", uid, e.getMessage(), e);
+            return ResponseEntity.badRequest().body("사용자 삭제 실패: " + e.getMessage());
+        }
+    }
 }
