@@ -16,7 +16,7 @@ public class FirebaseConfig {
     @Bean
     public FirebaseApp firebaseApp() throws IOException {
         FirebaseOptions options = FirebaseOptions.builder()
-                .setCredentials(GoogleCredentials.fromStream(new ClassPathResource("firebase/wordgarden-e47e3-firebase-adminsdk-o53ww-ead41f20f4.json").getInputStream()))
+                .setCredentials(GoogleCredentials.fromStream(new ClassPathResource("Firebase/wordgarden-e47e3-firebase-adminsdk-o53ww-ead41f20f4.json").getInputStream()))
                 .build();
 
         if (FirebaseApp.getApps().isEmpty()) {
