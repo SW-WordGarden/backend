@@ -13,7 +13,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Service
 public class GardenService {
@@ -49,8 +51,26 @@ public class GardenService {
         int growthStage = calculateGrowthStage(garden.getTreeGrow());
         boolean isFullyGrown = growthStage == 4;
         LocalDate completionDate = isFullyGrown ? LocalDate.now() : null;
+        int plantNum = getPlantNumber(garden.getTreeName());
 
-        return new PlantGrowthDTO(garden.getTreeName(), garden.getTreeGrow(), growthStage, completionDate);
+        return new PlantGrowthDTO(garden.getTreeName(), plantNum, garden.getTreeGrow(), growthStage, completionDate);
+    }
+
+    private int getPlantNumber(String treeName) {
+        Map<String, Integer> plantNumbers = new HashMap<>();
+        plantNumbers.put("Apple Tree", 1);
+        plantNumbers.put("Cherry Blossom", 2);
+        plantNumbers.put("Tulip", 3);
+        plantNumbers.put("Sunflower", 4);
+        plantNumbers.put("Money Tree", 5);
+        plantNumbers.put("Cactus", 6);
+        plantNumbers.put("Bamboo", 7);
+        plantNumbers.put("Star Tree", 8);
+        plantNumbers.put("Mushroom", 9);
+        plantNumbers.put("Fluffy Tree", 10);
+        plantNumbers.put("Watermelon Tree", 11);
+
+        return plantNumbers.getOrDefault(treeName, 0);
     }
 
     // 물뿌리개를 구매하는 메서드
@@ -91,7 +111,11 @@ public class GardenService {
             gardenBookRepository.save(gardenBook);
 
             // 다음 식물로 정원을 초기화
-            List<String> plants = List.of("Apple Tree", "Cherry Blossom", "Tulip", "Sunflower");
+            List<String> plants = List.of(
+                    "Apple Tree", "Cherry Blossom", "Tulip", "Sunflower",
+                    "Money Tree", "Cactus", "Bamboo", "Star Tree",
+                    "Mushroom", "Fluffy Tree", "Watermelon Tree"
+            );
             int nextPlantIndex = plants.indexOf(garden.getTreeName()) + 1;
             if (nextPlantIndex < plants.size()) {
                 garden.setTreeName(plants.get(nextPlantIndex));

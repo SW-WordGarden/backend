@@ -77,6 +77,8 @@ public class OneQuizService {
         response.setWqQuestion(wqinfo.getWqQuestion());
         response.setQuestionType("ox");
         response.setOptions(Arrays.asList("O", "X"));
+        response.setCorrectAnswer(wqinfo.getWqAnswer());
+        response.setCorrectInfo(word.getWordInfo());
 
         logger.info("생성된 퀴즈: {}", response);
         return response;
