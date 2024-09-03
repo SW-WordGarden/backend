@@ -12,5 +12,5 @@ public class UserDto {
     private String uImage;
     private String uProvider;
     private String uUrl;
-    private Integer uParticipant;
+    private Integer uParticipate;
 }
