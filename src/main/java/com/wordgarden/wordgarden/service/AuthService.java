@@ -96,6 +96,7 @@ public class AuthService {
         dto.setUImage(user.getUImage());
         dto.setUProvider(user.getUProvider());
         dto.setUUrl(user.getUUrl());
+        dto.setUParticipate(user.getUParticipate());
         return dto;
     }
 

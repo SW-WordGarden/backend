@@ -169,6 +169,16 @@ public class WqService {
         User user = userRepository.findById(submission.getUid())
                 .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다: " + submission.getUid()));
 
+        log.info("사용자 {} 의 현재 uParticipate 값: {}", user.getUid(), user.getUParticipate());
+
+        if (user.getUParticipate() == null) {
+            user.setUParticipate(0);
+        }
+
+        user.setUParticipate(user.getUParticipate()+1);
+
+        log.info("사용자 {} 의 증가 후 uParticipate 값: {}", user.getUid(), user.getUParticipate());
+
         List<Wqresult> results = new ArrayList<>();
         List<Wqwrong> wrongs = new ArrayList<>();
         int correctAnswers = 0;
@@ -195,6 +205,9 @@ public class WqService {
         } catch (Exception e) {
             log.error("코인 증가 중 오류 발생: {}", e.getMessage());
         }
+
+
+        log.info("사용자 {} 의 최종 저장된 uParticipate 값: {}", user.getUid(), user.getUParticipate());
 
         wqresultRepository.saveAll(results);
         wqwrongRepository.saveAll(wrongs);
@@ -365,4 +378,5 @@ public class WqService {
 
         return stats;
     }
+
 }

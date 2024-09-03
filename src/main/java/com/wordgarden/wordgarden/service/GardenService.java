@@ -90,9 +90,9 @@ public class GardenService {
 
     // 식물의 성장 단계를 계산하는 메서드
     private int calculateGrowthStage(int treeGrow) {
-        if (treeGrow <= 1000) return 1;
-        if (treeGrow <= 2250) return 2;
-        if (treeGrow <= 3749) return 3;
+        if (treeGrow <= 101) return 1;
+        if (treeGrow <= 201) return 2;
+        if (treeGrow <= 301) return 3;
         return 4;
     }
 
