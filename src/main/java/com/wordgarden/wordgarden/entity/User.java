@@ -40,6 +40,9 @@ public class User {
     @Column(name = "u_lockquiz")
     private Boolean uLockquiz = false; // 잠금화면 퀴즈 설정 여부
 
+    @Column(name = "u_participate")
+    private Integer uParticipate = 0; // 당일 단어 퀴즈 풀이 횟수
+
     @JsonIgnore
     // 또는 @JsonManagedReference
     @OneToMany(mappedBy = "user", fetch = FetchType.LAZY)

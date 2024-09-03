@@ -169,6 +169,7 @@ public class WqService {
         User user = userRepository.findById(submission.getUid())
                 .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다: " + submission.getUid()));
 
+        user.setUParticipate(user.getUParticipate()+1);
         List<Wqresult> results = new ArrayList<>();
         List<Wqwrong> wrongs = new ArrayList<>();
         int correctAnswers = 0;
@@ -365,4 +366,5 @@ public class WqService {
 
         return stats;
     }
+
 }
