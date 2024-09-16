@@ -3,19 +3,31 @@ package com.wordgarden.wordgarden.controller;
 import com.wordgarden.wordgarden.service.GardenService;
 import com.wordgarden.wordgarden.dto.UserGardenInfoDTO;
 import com.wordgarden.wordgarden.dto.PlantGrowthDTO;
+import io.github.bucket4j.Bandwidth;
+import io.github.bucket4j.Bucket;
+import io.github.bucket4j.Refill;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.time.Duration;
 
 @RestController
 @RequestMapping("/garden")
 public class GardenController {
 
     private final GardenService gardenService;
+    private final Bucket bucket;
 
     @Autowired
     public GardenController(GardenService gardenService) {
         this.gardenService = gardenService;
+
+        // api컨트롤러
+        Bandwidth limit = Bandwidth.classic(10, Refill.greedy(10, Duration.ofMinutes(1)));
+        this.bucket = Bucket.builder()
+                .addLimit(limit)
+                .build();
     }
 
     // 사용자의 정원 정보를 조회하는 엔드포인트

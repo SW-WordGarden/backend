@@ -63,6 +63,9 @@ dependencies {
 
 	// Firebase
 	implementation 'com.google.firebase:firebase-admin:9.1.1'
+
+	// Bucket
+	implementation 'com.github.vladimir-bukhtoyarov:bucket4j-core:7.6.0'
 }
 tasks.named('test') {
 	useJUnitPlatform()
