@@ -66,6 +66,9 @@ dependencies {
 
 	// Bucket
 	implementation 'com.github.vladimir-bukhtoyarov:bucket4j-core:7.6.0'
+
+	// Web Client
+	implementation 'org.springframework.boot:spring-boot-starter-webflux'
 }
 tasks.named('test') {
 	useJUnitPlatform()

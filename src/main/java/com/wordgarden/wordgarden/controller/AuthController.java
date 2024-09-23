@@ -45,4 +45,10 @@ public class AuthController {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("User not found");
         }
     }
+
+    // 세션 연결 확인을 위한 API
+    @GetMapping("/keep-alive")
+    public String keepAlive() {
+        return "Server OK";
+    }
 }
