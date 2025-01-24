@@ -1,7 +1,23 @@
+# Trouble Shooting
+## 문제 상황
+### Jar파일을 사용하여 서버 구동 시 서버 멈춤 현상
+AWS EC2 환경에서 jar파일을 사용하여 서버를 운영하는 중, 장시간 API요청이 없으면 서버가 중단되는 상황이 반복.
+어휘 데이터가 사전에 저장된 상태에서 7일 마다 학습 데이터가 갱신되기 때문에 중단될 때마다 서버를 재시작하면 데이터가 초기화되어 사용자가 혼란을 겪을 수 있다고 판단.
+</br>
+### 개선 방안
+</br>
+1. AWS 콘솔에서 인스턴스 절전 모드와 자동 종료 확인 후 비활성화
+2. Java 애플리케이션의 유후 상태 관리
+### 결과
+AWS 콘솔에서 인스턴스 절전 모드와 자동 종료 설정을 확인하고 비활성화하고 Spring boot의 설정 파일에서 세션 타임아웃 시간을 증가시킴.
+@Scheduled 어노테이션을 사용하여 주기적으로 상태 확인을 수행할 수 있도록 수정하여 해결.
+</br>
+</hr>
+# Test - 프론트엔드 참고용
 inteliJ만 설치하여 테스트하는 방법과 inteliJ설치+MySQL 설치하여 테스트하는 방법이 있습니다. </br>
 코드는 inteliJ만 설치되었을 때 기준으로 되어있습니다. 
 </br>
-# 1. inteliJ설치
+## 1. inteliJ설치
 테스트용 DB를 사용하는 방법입니다. 데이터 보존을 보장하기 어렵습니다. </br>
 </br>
 https://www.jetbrains.com/ko-kr/idea/download/?section=windows
@@ -13,7 +29,7 @@ https://www.jetbrains.com/ko-kr/idea/download/?section=windows
 실행시키고 테스트 하시면 됩니다.</br>
 </br>
 실행은 WordgardenApplication.java 여기서 실행시키시면 되요!</br></br></br>
-# 2. inteliJ설치+MySQL 설치
+## 2. inteliJ설치+MySQL 설치
 intelij는 위와 동일하게 설치해주시면 됩니다. 
 </br>
 https://dev.mysql.com/downloads/windows/installer/8.0.html
@@ -32,7 +48,7 @@ url에서 port번호(현재 코드에서 3307이라고 되어 있는 부분)</br
 username에 사용자 이름 작성해주시고</br>
 mysql에서 해당 사용자 계정을 생성할 때에 설정했던 password를 작성해주시면 됩니다.</br></br>
 
-# Word 추가 이후 
+## Word 추가 이후 
 번거롭지만 서버를 테스트 할 때마다 DB를 생성하고 지우는 과정을 반복해주어야 DB관련 에러가 발생하지 않습니다.</br></br>
 
 ![image](https://github.com/user-attachments/assets/1b83c1b6-a0a3-459e-b42c-fd800eb3d1db)
